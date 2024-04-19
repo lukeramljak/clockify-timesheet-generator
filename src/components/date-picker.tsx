@@ -1,9 +1,8 @@
-import * as React from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { addDays, format } from "date-fns";
+import { addDays, format, isFriday, isMonday, startOfWeek } from "date-fns";
+import * as React from "react";
 import { DateRange } from "react-day-picker";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -11,14 +10,34 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+interface DatePickerWithRangeProps {
+  className?: string;
+  onSelectDateRange: (dateRange: DateRange | undefined) => void;
+}
 
 export function DatePickerWithRange({
   className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
+  onSelectDateRange,
+}: DatePickerWithRangeProps) {
+  const [date, setDate] = React.useState<DateRange | undefined>(() => {
+    const start = startOfWeek(new Date());
+    let monday = start;
+    while (!isMonday(monday)) {
+      monday = addDays(monday, 1);
+    }
+    let friday = start;
+    while (!isFriday(friday)) {
+      friday = addDays(friday, 1);
+    }
+    return { from: monday, to: friday };
   });
+
+  const handleDateSelect = (selectedDate: DateRange) => {
+    setDate(selectedDate);
+    onSelectDateRange(selectedDate);
+  };
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -53,7 +72,7 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={setDate}
+            onSelect={handleDateSelect}
             numberOfMonths={2}
           />
         </PopoverContent>

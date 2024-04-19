@@ -19,6 +19,8 @@ import { useEffect, useState } from "react";
 import { ScrollArea } from "./ui/scroll-area";
 import getAllUsers from "@/services/get-all-users";
 import { useForm } from "react-hook-form";
+import getTimeEntries from "@/services/get-time-entries";
+import { DatePickerWithRange } from "./date-picker";
 
 interface User {
   id: string;
@@ -29,6 +31,7 @@ const UserList = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [users, setUsers] = useState<User[]>([]);
+  const [selectedDate, setSelectedDate] = useState<DateRange | undefined>();
   const { handleSubmit, register, setValue: setFormValue } = useForm<User>();
 
   useEffect(() => {
@@ -37,11 +40,20 @@ const UserList = () => {
     });
   }, []);
 
-  const onSubmit = (data: User) => {
-    console.log(data);
+  const onSubmit = async (data: User) => {
+    try {
+      const startDate = selectedDate?.from
+        ? selectedDate.from.toISOString()
+        : undefined;
+      const endDate = selectedDate?.to
+        ? selectedDate.to.toISOString()
+        : undefined;
+      const timeEntries = await getTimeEntries(data.id, startDate, endDate);
+      console.log(timeEntries);
+    } catch (error) {
+      console.error("Error fetching time entries:", error);
+    }
   };
-
-  console.log(value);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -96,6 +108,7 @@ const UserList = () => {
           </Command>
         </PopoverContent>
       </Popover>
+      <DatePickerWithRange onSelectDateRange={setSelectedDate} />
       <Button>Generate</Button>
     </form>
   );
