@@ -49,6 +49,7 @@ const exportToExcel = async (
       [callNoValue: string]: { startRow: number; endRow: number };
     } = {};
     const lastIndexByCallNo: { [callNoValue: string]: number } = {};
+    const callNoOccurrences: { [callNoValue: string]: number } = {};
 
     formattedEntries.forEach(
       ({ resource, date, code, hours, callNo, description }, index) => {
@@ -75,6 +76,7 @@ const exportToExcel = async (
         worksheet.addRow(row);
 
         lastIndexByCallNo[callNo] = index;
+        callNoOccurrences[callNo] = (callNoOccurrences[callNo] || 0) + 1;
       },
     );
 
@@ -91,6 +93,12 @@ const exportToExcel = async (
       const { startRow, endRow } = totals[callNo];
       const sumRange = `D${startRow}:D${endRow}`;
       worksheet.getCell(`E${endRow}`).value = { formula: `SUM(${sumRange})` };
+
+      if (callNoOccurrences[callNo] > 1) {
+        for (let i = startRow; i < endRow; i++) {
+          worksheet.getCell(`F${i}`).value = "";
+        }
+      }
     });
 
     const columnWidths: number[] = [10, 12, 10, 10, 10, 12, 50];
