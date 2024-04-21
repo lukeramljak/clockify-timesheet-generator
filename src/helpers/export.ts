@@ -6,6 +6,21 @@ interface TimeEntry {
   timeInterval: { start: string; end: string };
 }
 
+const getDate = (timeInterval: { start: string }): string => {
+  const startDate = new Date(timeInterval.start);
+  return startDate.toLocaleDateString("en-GB");
+};
+
+const getHours = (timeInterval: { start: string; end: string }): number => {
+  const durationSeconds =
+    Math.round(
+      new Date(timeInterval.end).getTime() -
+        new Date(timeInterval.start).getTime(),
+    ) / 1000;
+  const durationHours = durationSeconds / 3600;
+  return Math.round(durationHours * 4) / 4;
+};
+
 const getCallNo = (description: string): string => {
   return description.split(" - ")[0];
 };
@@ -18,6 +33,14 @@ const getCode = (description: string): string => {
 
 const getDescription = (description: string): string => {
   return description.split(" - ")[1];
+};
+
+const convertColumnToNumber = (worksheet, value: string) => {
+  worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
+    if (!isNaN(cell.value as number)) {
+      cell.numFmt = "0.00";
+    }
+  });
 };
 
 const exportToExcel = async (
@@ -53,17 +76,13 @@ const exportToExcel = async (
     const lastIndexByCallNo: { [callNoValue: string]: number } = {};
 
     timeEntries.forEach(({ billable, description, timeInterval }, index) => {
+      const dateValue = getDate(timeInterval);
+      const codeValue = billable ? getCode(description) : "net";
+      const hoursValue = getHours(timeInterval);
       const callNoValue = billable ? getCallNo(description) : callNo;
-
-      const startDate = new Date(timeInterval.start);
-      const formattedStartDate = startDate.toLocaleDateString("en-GB"); // Format date as DD/MM/YYYY
-      const durationSeconds =
-        Math.round(
-          new Date(timeInterval.end).getTime() -
-            new Date(timeInterval.start).getTime(),
-        ) / 1000;
-      const durationHours = durationSeconds / 3600;
-      const roundedDuration = Math.round(durationHours * 4) / 4; // Round to the nearest quarter of an hour
+      const descriptionValue = billable
+        ? getDescription(description)
+        : description;
 
       if (!totals[callNoValue]) {
         totals[callNoValue] = {
@@ -77,12 +96,12 @@ const exportToExcel = async (
 
       const row: (string | number)[] = [
         resource,
-        formattedStartDate,
-        billable ? getCode(description) : "net",
-        roundedDuration,
+        dateValue,
+        codeValue,
+        hoursValue,
         "",
-        billable ? getCallNo(description) : callNo,
-        billable ? getDescription(description) : description,
+        callNoValue,
+        descriptionValue,
       ];
 
       worksheet.addRow(row);
@@ -90,19 +109,8 @@ const exportToExcel = async (
       lastIndexByCallNo[callNoValue] = index;
     });
 
-    const hoursColumn = worksheet.getColumn("D");
-    hoursColumn.eachCell({ includeEmpty: true }, (cell) => {
-      if (!isNaN(cell.value as number)) {
-        cell.numFmt = "0.00";
-      }
-    });
-
-    const totalsColumn = worksheet.getColumn("E");
-    totalsColumn.eachCell({ includeEmpty: true }, (cell) => {
-      if (!isNaN(cell.value as number)) {
-        cell.numFmt = "0.00";
-      }
-    });
+    convertColumnToNumber(worksheet, "D");
+    convertColumnToNumber(worksheet, "E");
 
     const lastRowNumber = worksheet.rowCount;
     worksheet.getCell(`D${lastRowNumber + 1}`).value = {
@@ -114,6 +122,11 @@ const exportToExcel = async (
       const { startRow, endRow } = totals[callNoValue];
       const sumRange = `D${startRow}:D${endRow}`;
       worksheet.getCell(`E${endRow}`).value = { formula: `SUM(${sumRange})` };
+    });
+
+    const columnWidths: number[] = [10, 12, 10, 10, 10, 12, 50];
+    worksheet.columns.forEach((column, index) => {
+      column.width = columnWidths[index];
     });
 
     const formattedEndDate = new Date(endDate);
