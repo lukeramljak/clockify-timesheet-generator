@@ -1,20 +1,31 @@
-const getCallNo = (description: string) => {
+import ExcelJS from "exceljs";
+
+interface TimeEntry {
+  billable: boolean;
+  description: string;
+  timeInterval: { start: string; end: string };
+}
+
+const getCallNo = (description: string): string => {
   return description.split(" - ")[0];
 };
 
-const getCode = (description: string) => {
+const getCode = (description: string): string => {
   const callNo = getCallNo(description);
   const regex = /[a-zA-Z]+/;
-  return callNo.match(regex)[0];
+  return callNo.match(regex)![0];
 };
 
-const getDescription = (description: string) => {
+const getDescription = (description: string): string => {
   return description.split(" - ")[1];
 };
 
-import ExcelJS from "exceljs";
-
-const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
+const exportToExcel = async (
+  resource: string,
+  callNo: string,
+  timeEntries: TimeEntry[],
+  endDate: string,
+): Promise<void> => {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sheet1");
@@ -36,8 +47,10 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
       return callNoA.localeCompare(callNoB);
     });
 
-    const totals = {};
-    const lastIndexByCallNo = {};
+    const totals: {
+      [callNoValue: string]: { startRow: number; endRow: number };
+    } = {};
+    const lastIndexByCallNo: { [callNoValue: string]: number } = {};
 
     timeEntries.forEach(({ billable, description, timeInterval }, index) => {
       const callNoValue = billable ? getCallNo(description) : callNo;
@@ -62,7 +75,7 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
         totals[callNoValue].endRow = index + 2;
       }
 
-      const row = [
+      const row: (string | number)[] = [
         resource,
         formattedStartDate,
         billable ? getCode(description) : "net",
@@ -79,15 +92,15 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
 
     const hoursColumn = worksheet.getColumn("D");
     hoursColumn.eachCell({ includeEmpty: true }, (cell) => {
-      if (!isNaN(cell.value)) {
-        cell.numFmt = "0.00"; // Number format to display two decimal places
+      if (!isNaN(cell.value as number)) {
+        cell.numFmt = "0.00";
       }
     });
 
     const totalsColumn = worksheet.getColumn("E");
     totalsColumn.eachCell({ includeEmpty: true }, (cell) => {
-      if (!isNaN(cell.value)) {
-        cell.numFmt = "0.00"; // Number format to display two decimal places
+      if (!isNaN(cell.value as number)) {
+        cell.numFmt = "0.00";
       }
     });
 
