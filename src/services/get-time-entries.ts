@@ -1,4 +1,4 @@
-import { format, startOfWeek } from "date-fns";
+import { format } from "date-fns";
 
 const getTimeEntries = async (
   apiKey: string,
@@ -7,27 +7,8 @@ const getTimeEntries = async (
   date?: string,
 ) => {
   try {
-    let startDate;
-    let endDate;
-
-    if (date) {
-      const fridayDate = new Date(date);
-
-      const mondayDate = startOfWeek(fridayDate, { weekStartsOn: 1 });
-
-      startDate = format(mondayDate, "yyyy-MM-dd'T'00:00:00'Z'");
-      endDate = format(fridayDate, "yyyy-MM-dd'T'23:59:59'Z'");
-    }
-
-    let url = `https://api.clockify.me/api/v1/workspaces/${workspaceId}/user/${userId}/time-entries`;
-
-    if (startDate && endDate) {
-      url += `?start=${startDate}&end=${endDate}`;
-    } else if (startDate) {
-      url += `?start=${startDate}`;
-    } else if (endDate) {
-      url += `?end=${endDate}`;
-    }
+    const formattedDate = format(new Date(date), "yyyy-MM-dd'T'23:59:59'Z'");
+    const url = `https://api.clockify.me/api/v1/workspaces/${workspaceId}/user/${userId}/time-entries?get-week-before=${formattedDate}`;
 
     const response = await fetch(url, {
       headers: {
@@ -36,7 +17,7 @@ const getTimeEntries = async (
     });
     return await response.json();
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching time entries:", error);
     throw error;
   }
 };

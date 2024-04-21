@@ -23,7 +23,6 @@ const exportToExcel = async (
 ): Promise<void> => {
   try {
     const formattedEntries = formatEntries(resource, callNo, timeEntries);
-    console.log(formattedEntries);
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sheet1");

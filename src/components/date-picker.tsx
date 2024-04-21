@@ -54,6 +54,7 @@ export function DatePicker({
             initialFocus
             ISOWeek
             mode="single"
+            selected={date}
             disabled={disabledDays}
             onSelect={handleDateSelect}
           />
