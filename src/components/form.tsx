@@ -8,10 +8,11 @@ import exportToExcel from "@/helpers/export";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import HelpDialog from "./help-dialog";
+import mostRecentFriday from "@/helpers/most-recent-friday";
 
 const Form = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date(),
+    mostRecentFriday,
   );
   const [isExporting, setIsExporting] = useState(false);
   const { user, setUser } = useUser();

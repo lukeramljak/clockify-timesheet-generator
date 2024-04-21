@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { format, isAfter, isFriday, subDays } from "date-fns";
+import { format, isAfter, isFriday } from "date-fns";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,25 +10,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import mostRecentFriday from "@/helpers/most-recent-friday";
 
 interface DatePickerWithRangeProps {
   className?: string;
   onSelectDate: (date: Date) => void;
 }
 
-const mostRecentFriday = () => {
-  let today = new Date();
-  while (!isFriday(today)) {
-    today = subDays(today, 1);
-  }
-  return today;
-};
-
 export function DatePicker({
   className,
   onSelectDate,
 }: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<Date | undefined>(mostRecentFriday());
+  const [date, setDate] = React.useState<Date | undefined>(mostRecentFriday);
   const today = new Date();
 
   const disabledDays = (date) => {
