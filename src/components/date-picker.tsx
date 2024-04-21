@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { addDays, format, isAfter, isFriday } from "date-fns";
+import { format, isAfter, isFriday, subDays } from "date-fns";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,19 @@ interface DatePickerWithRangeProps {
   onSelectDate: (date: Date) => void;
 }
 
+const mostRecentFriday = () => {
+  let today = new Date();
+  while (!isFriday(today)) {
+    today = subDays(today, 1);
+  }
+  return today;
+};
+
 export function DatePicker({
   className,
   onSelectDate,
 }: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [date, setDate] = React.useState<Date | undefined>(mostRecentFriday());
   const today = new Date();
 
   const disabledDays = (date) => {
