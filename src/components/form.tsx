@@ -7,6 +7,7 @@ import { Label } from "./ui/label";
 import exportToExcel from "@/helpers/export";
 import { Input } from "./ui/input";
 import { useState } from "react";
+import HelpDialog from "./help-dialog";
 
 const Form = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -39,6 +40,7 @@ const Form = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <h1 className="text-xl font-bold">Timesheet Generator</h1>
       <Label htmlFor="resource">Resource</Label>
       <Input
         type="text"
@@ -59,6 +61,7 @@ const Form = () => {
       <Label>Week Ending</Label>
       <DatePicker onSelectDate={handleDateSelect} />
       <Button type="submit">{isExporting ? "Exporting..." : "Export"}</Button>
+      <HelpDialog />
     </form>
   );
 };
