@@ -13,8 +13,12 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const today = new Date();
+  const disabledDays = { after: today };
+
   return (
     <DayPicker
+      disabled={disabledDays}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
