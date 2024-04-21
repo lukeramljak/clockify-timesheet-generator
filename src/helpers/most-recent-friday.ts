@@ -1,6 +1,6 @@
 import { isFriday, subDays } from "date-fns";
 
-const mostRecentFriday = () => {
+const mostRecentFriday = (): Date => {
   let today = new Date();
   while (!isFriday(today)) {
     today = subDays(today, 1);

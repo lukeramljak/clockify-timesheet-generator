@@ -19,7 +19,7 @@ const exportToExcel = async (
   resource: string,
   callNo: string,
   timeEntries: TimeEntry[],
-  date: string,
+  date: Date,
 ): Promise<void> => {
   try {
     const formattedEntries = formatEntries(resource, callNo, timeEntries);

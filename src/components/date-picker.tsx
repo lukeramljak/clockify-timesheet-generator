@@ -14,7 +14,7 @@ import mostRecentFriday from "@/helpers/most-recent-friday";
 
 interface DatePickerWithRangeProps {
   className?: string;
-  onSelectDate: (date: Date) => void;
+  onSelectDate: (date: Date | undefined) => void;
 }
 
 export function DatePicker({
@@ -24,12 +24,12 @@ export function DatePicker({
   const [date, setDate] = React.useState<Date | undefined>(mostRecentFriday);
   const today = new Date();
 
-  const disabledDays = (date) => {
+  const disabledDays = (date: Date) => {
     if (isAfter(date, today)) return true;
     return !isFriday(date);
   };
 
-  const handleDateSelect = (selectedDate: Date) => {
+  const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
     onSelectDate(selectedDate);
   };

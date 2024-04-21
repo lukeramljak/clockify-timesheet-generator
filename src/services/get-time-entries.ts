@@ -4,10 +4,10 @@ const getTimeEntries = async (
   apiKey: string,
   userId: string,
   workspaceId: string,
-  date?: string,
+  date: Date,
 ) => {
   try {
-    const formattedDate = format(new Date(date), "yyyy-MM-dd'T'23:59:59'Z'");
+    const formattedDate = format(date, "yyyy-MM-dd'T'23:59:59'Z'");
     const url = `https://api.clockify.me/api/v1/workspaces/${workspaceId}/user/${userId}/time-entries?get-week-before=${formattedDate}`;
 
     const response = await fetch(url, {

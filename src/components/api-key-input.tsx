@@ -16,9 +16,9 @@ const ApiKeyInput = () => {
   const onSubmit: SubmitHandler<Inputs> = (data: Inputs) => {
     getUser(data.apiKey).then((res) => {
       setUser({
-        name: res.name,
-        userId: res.id,
-        workspaceId: res.defaultWorkspace,
+        name: res?.name,
+        userId: res?.id,
+        workspaceId: res?.defaultWorkspace,
         apiKey: data.apiKey,
       });
     });

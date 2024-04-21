@@ -5,8 +5,8 @@ type UserProviderProps = { children: React.ReactNode };
 type User = {
   name?: string;
   userId?: string;
-  resource: string;
-  callNo: string;
+  resource?: string;
+  callNo?: string;
   workspaceId?: string;
   apiKey?: string;
 };

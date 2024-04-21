@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/context/user-context";
+import exportToExcel from "@/helpers/export";
+import mostRecentFriday from "@/helpers/most-recent-friday";
 import getTimeEntries from "@/services/get-time-entries";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { DatePicker } from "./date-picker";
-import { useUser } from "@/context/user-context";
-import { Label } from "./ui/label";
-import exportToExcel from "@/helpers/export";
-import { Input } from "./ui/input";
-import { useState } from "react";
 import HelpDialog from "./help-dialog";
-import mostRecentFriday from "@/helpers/most-recent-friday";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 const Form = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -22,20 +22,29 @@ const Form = () => {
   const onSubmit = async () => {
     try {
       setIsExporting(true);
-      const timeEntries = await getTimeEntries(
-        apiKey,
-        userId,
-        workspaceId,
-        selectedDate,
-      );
-      exportToExcel(resource, callNo, timeEntries, selectedDate);
+      if (
+        apiKey &&
+        resource &&
+        userId &&
+        callNo &&
+        workspaceId &&
+        selectedDate
+      ) {
+        const timeEntries = await getTimeEntries(
+          apiKey,
+          userId,
+          workspaceId,
+          selectedDate,
+        );
+        exportToExcel(resource, callNo, timeEntries, selectedDate);
+      }
     } catch (error) {
       console.error("Error fetching time entries:", error);
     }
     setIsExporting(false);
   };
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
   };
 
