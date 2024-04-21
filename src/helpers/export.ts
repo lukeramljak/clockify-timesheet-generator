@@ -1,47 +1,11 @@
 import ExcelJS, { Worksheet } from "exceljs";
+import formatEntries from "./format-time-entries";
 
 interface TimeEntry {
   billable: boolean;
   description: string;
   timeInterval: { duration: string; start: string; end: string };
 }
-
-const getDate = (timeInterval: { start: string }): string => {
-  const startDate = new Date(timeInterval.start);
-  return startDate.toLocaleDateString("en-GB");
-};
-
-const getHours = (duration: string): number => {
-  const minDuration = 0.25;
-  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(\d+)S/);
-  if (match) {
-    const hours = match[1] ? parseInt(match[1], 10) : 0;
-    const minutes = match[2] ? parseInt(match[2], 10) : 0;
-    const seconds = parseInt(match[3], 10);
-    const totalHours = hours + minutes / 60 + seconds / 3600;
-    if (totalHours <= minDuration) {
-      return minDuration;
-    } else {
-      const roundedHours = Math.round(totalHours * 4) / 4;
-      return roundedHours;
-    }
-  }
-  return 0;
-};
-
-const getCallNo = (description: string): string => {
-  return description.split(" - ")[0];
-};
-
-const getCode = (description: string): string => {
-  const callNo = getCallNo(description);
-  const regex = /[a-zA-Z]+/;
-  return callNo.match(regex)![0];
-};
-
-const getDescription = (description: string): string => {
-  return description.split(" - ")[1];
-};
 
 const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
@@ -58,6 +22,9 @@ const exportToExcel = async (
   endDate: string,
 ): Promise<void> => {
   try {
+    const formattedEntries = formatEntries(resource, callNo, timeEntries);
+    console.log(formattedEntries);
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sheet1");
 
@@ -72,10 +39,10 @@ const exportToExcel = async (
     ];
     worksheet.addRow(headers);
 
-    timeEntries.sort((a, b) => {
-      const callNoA = a.billable ? getCallNo(a.description) : callNo;
-      const callNoB = b.billable ? getCallNo(b.description) : callNo;
-      return callNoA.localeCompare(callNoB);
+    formattedEntries.sort((a, b) => {
+      if (a.callNo < b.callNo) return -1;
+      if (a.callNo > b.callNo) return 1;
+      return 0;
     });
 
     const totals: {
@@ -83,39 +50,33 @@ const exportToExcel = async (
     } = {};
     const lastIndexByCallNo: { [callNoValue: string]: number } = {};
 
-    timeEntries.forEach(({ billable, description, timeInterval }, index) => {
-      const dateValue = getDate(timeInterval);
-      const codeValue = billable ? getCode(description) : "net";
-      const hoursValue = getHours(timeInterval.duration);
-      const callNoValue = billable ? getCallNo(description) : callNo;
-      const descriptionValue = billable
-        ? getDescription(description)
-        : description;
+    formattedEntries.forEach(
+      ({ resource, date, code, hours, callNo, description }, index) => {
+        if (!totals[callNo]) {
+          totals[callNo] = {
+            startRow: index + 2,
+            endRow: index + 2,
+          };
+          lastIndexByCallNo[callNo] = index;
+        } else {
+          totals[callNo].endRow = index + 2;
+        }
 
-      if (!totals[callNoValue]) {
-        totals[callNoValue] = {
-          startRow: index + 2,
-          endRow: index + 2,
-        };
-        lastIndexByCallNo[callNoValue] = index;
-      } else {
-        totals[callNoValue].endRow = index + 2;
-      }
+        const row: (string | number)[] = [
+          resource,
+          date,
+          code,
+          hours,
+          "",
+          callNo,
+          description,
+        ];
 
-      const row: (string | number)[] = [
-        resource,
-        dateValue,
-        codeValue,
-        hoursValue,
-        "",
-        callNoValue,
-        descriptionValue,
-      ];
+        worksheet.addRow(row);
 
-      worksheet.addRow(row);
-
-      lastIndexByCallNo[callNoValue] = index;
-    });
+        lastIndexByCallNo[callNo] = index;
+      },
+    );
 
     convertColumnToNumber(worksheet, "D");
     convertColumnToNumber(worksheet, "E");
@@ -126,8 +87,8 @@ const exportToExcel = async (
     };
     worksheet.getCell(`D${lastRowNumber + 1}`).numFmt = "0.00";
 
-    Object.keys(totals).forEach((callNoValue) => {
-      const { startRow, endRow } = totals[callNoValue];
+    Object.keys(totals).forEach((callNo) => {
+      const { startRow, endRow } = totals[callNo];
       const sumRange = `D${startRow}:D${endRow}`;
       worksheet.getCell(`E${endRow}`).value = { formula: `SUM(${sumRange})` };
     });
