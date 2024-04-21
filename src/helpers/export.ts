@@ -106,9 +106,9 @@ const exportToExcel = async (
     });
 
     const formattedEndDate = new Date(date);
-    const year = formattedEndDate.getFullYear();
+    const year = String(formattedEndDate.getFullYear()).slice(-2);
     const month = String(formattedEndDate.getMonth() + 1).padStart(2, "0");
-    const day = formattedEndDate.getDate();
+    const day = String(formattedEndDate.getDate()).padStart(2, "0");
     const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
 
     const buffer = await workbook.xlsx.writeBuffer();
