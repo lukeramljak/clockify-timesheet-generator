@@ -1,13 +1,14 @@
+import Content from "./components/content";
 import { ThemeProvider } from "./components/theme/theme-provider";
-import UserList from "./components/user-list";
+import { UserProvider } from "./context/user-context";
 
 export default function App() {
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <div className="h-full flex flex-col items-center justify-center gap-4">
-          <UserList />
-        </div>
+        <UserProvider>
+          <Content />
+        </UserProvider>
       </ThemeProvider>
     </>
   );

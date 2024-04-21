@@ -1,18 +1,25 @@
-import api from "./api";
-
 interface ClockifyUser {
   id: string;
   name: string;
   defaultWorkspace: string;
 }
 
-const getUser = async (): Promise<ClockifyUser> => {
+const getUser = async (apiKey: string): Promise<ClockifyUser | null> => {
   try {
-    const response = await api("user");
-    return await response.json();
+    const url = "https://api.clockify.me/api/v1/user";
+    const response = await fetch(url, {
+      headers: {
+        "X-Api-Key": apiKey,
+      },
+      method: "GET",
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error. Status: ${response.status}`);
+    }
+    return (await response.json()) as ClockifyUser;
   } catch (error) {
     console.error("Error fetching user:", error);
-    throw error;
+    return null;
   }
 };
 
