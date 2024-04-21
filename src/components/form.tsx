@@ -1,48 +1,20 @@
-import { Check, ChevronsUpDown } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { CommandList } from "cmdk";
-import { useEffect, useState } from "react";
-import { ScrollArea } from "./ui/scroll-area";
-import getAllUsers from "@/services/get-all-users";
-import { useForm } from "react-hook-form";
 import getTimeEntries from "@/services/get-time-entries";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { DatePickerWithRange } from "./date-picker";
+import { useUser } from "@/context/user-context";
+import { Label } from "./ui/label";
 import exportToExcel from "@/helpers/export";
+import { Input } from "./ui/input";
 
-interface User {
-  id: string;
-  name: string;
-}
-
-const UserList = () => {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+const Form = () => {
   const [selectedDate, setSelectedDate] = useState<DateRange | undefined>();
-  const [timeEntries, setTimeEntries] = useState([]);
-  const { handleSubmit, register, setValue: setFormValue } = useForm<User>();
+  const { user, setUser } = useUser();
+  const { resource, callNo, userId, workspaceId, apiKey } = user;
+  const { handleSubmit } = useForm();
 
-  useEffect(() => {
-    getAllUsers().then((res) => {
-      setUsers(res);
-    });
-  }, []);
-
-  const onSubmit = async (data: User) => {
+  const onSubmit = async () => {
     try {
       const startDate = selectedDate?.from
         ? selectedDate.from.toISOString()
@@ -50,9 +22,15 @@ const UserList = () => {
       const endDate = selectedDate?.to
         ? selectedDate.to.toISOString()
         : undefined;
-      const entries = await getTimeEntries(data.id, startDate, endDate);
-      setTimeEntries(entries);
+      const timeEntries = await getTimeEntries(
+        apiKey,
+        userId,
+        workspaceId,
+        startDate,
+        endDate,
+      );
       console.log(timeEntries);
+      exportToExcel(resource, callNo, timeEntries, endDate);
     } catch (error) {
       console.error("Error fetching time entries:", error);
     }
@@ -60,61 +38,28 @@ const UserList = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-[280px] justify-between"
-          >
-            {value
-              ? users.find((user) => user.id === value)?.name
-              : "Select user..."}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[280px] p-0">
-          <Command>
-            <CommandInput placeholder="Search user..." />
-            <CommandList>
-              <CommandEmpty>No users found.</CommandEmpty>
-              <CommandGroup>
-                {/* FIXME: Add search functionality */}
-                <ScrollArea className="h-64">
-                  {users.map((user) => (
-                    <CommandItem
-                      key={user.id}
-                      value={user.id}
-                      {...register("id")}
-                      onSelect={(currentValue) => {
-                        setFormValue(
-                          "id",
-                          currentValue === value ? "" : user.id,
-                        );
-                        setValue(currentValue === value ? "" : currentValue);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === user.id ? "opacity-100" : "opacity-0",
-                        )}
-                      />
-                      {user.name}
-                    </CommandItem>
-                  ))}
-                </ScrollArea>
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <Label htmlFor="resource">Resource</Label>
+      <Input
+        type="text"
+        name="resource"
+        maxLength={3}
+        defaultValue={resource}
+        required
+        onChange={(e) => setUser({ ...user, resource: e.target.value })}
+      />
+      <Label htmlFor="callNo">Call No</Label>
+      <Input
+        type="text"
+        name="callNo"
+        defaultValue={callNo}
+        required
+        onChange={(e) => setUser({ ...user, callNo: e.target.value })}
+      />
+      <Label>Date Range</Label>
       <DatePickerWithRange onSelectDateRange={setSelectedDate} />
-      <Button onClick={() => exportToExcel(timeEntries)}>Generate</Button>
+      <Button type="submit">Generate</Button>
     </form>
   );
 };
 
-export default UserList;
+export default Form;
