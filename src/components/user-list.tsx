@@ -21,6 +21,7 @@ import getAllUsers from "@/services/get-all-users";
 import { useForm } from "react-hook-form";
 import getTimeEntries from "@/services/get-time-entries";
 import { DatePickerWithRange } from "./date-picker";
+import exportToExcel from "@/helpers/export";
 
 interface User {
   id: string;
@@ -32,6 +33,7 @@ const UserList = () => {
   const [value, setValue] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [selectedDate, setSelectedDate] = useState<DateRange | undefined>();
+  const [timeEntries, setTimeEntries] = useState([]);
   const { handleSubmit, register, setValue: setFormValue } = useForm<User>();
 
   useEffect(() => {
@@ -48,7 +50,8 @@ const UserList = () => {
       const endDate = selectedDate?.to
         ? selectedDate.to.toISOString()
         : undefined;
-      const timeEntries = await getTimeEntries(data.id, startDate, endDate);
+      const entries = await getTimeEntries(data.id, startDate, endDate);
+      setTimeEntries(entries);
       console.log(timeEntries);
     } catch (error) {
       console.error("Error fetching time entries:", error);
@@ -63,7 +66,7 @@ const UserList = () => {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[300px] justify-between"
+            className="w-[280px] justify-between"
           >
             {value
               ? users.find((user) => user.id === value)?.name
@@ -71,7 +74,7 @@ const UserList = () => {
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
+        <PopoverContent className="w-[280px] p-0">
           <Command>
             <CommandInput placeholder="Search user..." />
             <CommandList>
@@ -109,7 +112,7 @@ const UserList = () => {
         </PopoverContent>
       </Popover>
       <DatePickerWithRange onSelectDateRange={setSelectedDate} />
-      <Button>Generate</Button>
+      <Button onClick={() => exportToExcel(timeEntries)}>Generate</Button>
     </form>
   );
 };
