@@ -20,11 +20,11 @@ const getDate = (timeInterval: { start: string }): string => {
 
 const getHours = (duration: string): number => {
   const minDuration = 0.25;
-  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(\d+)S/);
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (match) {
     const hours = match[1] ? parseInt(match[1], 10) : 0;
     const minutes = match[2] ? parseInt(match[2], 10) : 0;
-    const seconds = parseInt(match[3], 10);
+    const seconds = match[3] ? parseInt(match[3], 10) : 0;
     const totalHours = hours + minutes / 60 + seconds / 3600;
     if (totalHours <= minDuration) {
       return minDuration;
