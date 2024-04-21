@@ -1,10 +1,9 @@
 import api from "./api";
 
 const getProjects = async () => {
+  const workspaceId = localStorage.getItem("workspace_id");
   try {
-    const response = await api(
-      `workspaces/${import.meta.env.VITE_CLOCKIFY_WORKSPACE_ID}/projects`,
-    );
+    const response = await api(`workspaces/${workspaceId}/projects`);
     return await response.json();
   } catch (error) {
     console.error("Error fetching user:", error);

@@ -1,12 +1,12 @@
-import api from "./api";
-
 const getTimeEntries = async (
+  apiKey: string,
   userId: string,
+  workspaceId: string,
   startDate?: string,
   endDate?: string,
 ) => {
   try {
-    let url = `workspaces/${import.meta.env.VITE_CLOCKIFY_WORKSPACE_ID}/user/${userId}/time-entries`;
+    let url = `https://api.clockify.me/api/v1/workspaces/${workspaceId}/user/${userId}/time-entries`;
 
     if (startDate && endDate) {
       url += `?start=${startDate}&end=${endDate}`;
@@ -16,7 +16,11 @@ const getTimeEntries = async (
       url += `?end=${endDate}`;
     }
 
-    const response = await api(url);
+    const response = await fetch(url, {
+      headers: {
+        "X-Api-Key": apiKey,
+      },
+    });
     return await response.json();
   } catch (error) {
     console.error("Error fetching user:", error);
