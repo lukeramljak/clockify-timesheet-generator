@@ -1,7 +1,6 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { addDays, format, startOfWeek } from "date-fns";
+import { addDays, format, isAfter, isFriday } from "date-fns";
 import * as React from "react";
-import { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,23 +13,24 @@ import { cn } from "@/lib/utils";
 
 interface DatePickerWithRangeProps {
   className?: string;
-  onSelectDateRange: (dateRange: DateRange | undefined) => void;
+  onSelectDate: (date: Date) => void;
 }
 
-export function DatePickerWithRange({
+export function DatePicker({
   className,
-  onSelectDateRange,
+  onSelectDate,
 }: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>(() => {
-    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
-    const end = addDays(start, 6);
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const today = new Date();
 
-    return { from: start, to: end };
-  });
+  const disabledDays = (date) => {
+    if (isAfter(date, today)) return true;
+    return !isFriday(date);
+  };
 
-  const handleDateSelect = (selectedDate: DateRange) => {
+  const handleDateSelect = (selectedDate: Date) => {
     setDate(selectedDate);
-    onSelectDateRange(selectedDate);
+    onSelectDate(selectedDate);
   };
 
   return (
@@ -46,27 +46,15 @@ export function DatePickerWithRange({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
-                </>
-              ) : (
-                format(date.from, "LLL dd, y")
-              )
-            ) : (
-              <span>Pick a date</span>
-            )}
+            {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             initialFocus
             ISOWeek
-            mode="range"
-            defaultMonth={date?.from}
-            selected={date}
+            mode="single"
+            disabled={disabledDays}
             onSelect={handleDateSelect}
           />
         </PopoverContent>

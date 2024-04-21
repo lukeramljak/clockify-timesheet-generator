@@ -1,38 +1,40 @@
 import { Button } from "@/components/ui/button";
 import getTimeEntries from "@/services/get-time-entries";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { DatePickerWithRange } from "./date-picker";
+import { DatePicker } from "./date-picker";
 import { useUser } from "@/context/user-context";
 import { Label } from "./ui/label";
 import exportToExcel from "@/helpers/export";
 import { Input } from "./ui/input";
+import { useState } from "react";
 
 const Form = () => {
-  const [selectedDate, setSelectedDate] = useState<DateRange | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date(),
+  );
+  const [isExporting, setIsExporting] = useState(false);
   const { user, setUser } = useUser();
   const { resource, callNo, userId, workspaceId, apiKey } = user;
   const { handleSubmit } = useForm();
 
   const onSubmit = async () => {
     try {
-      const startDate = selectedDate?.from
-        ? selectedDate.from.toISOString()
-        : undefined;
-      const endDate = selectedDate?.to
-        ? selectedDate.to.toISOString()
-        : undefined;
+      setIsExporting(true);
       const timeEntries = await getTimeEntries(
         apiKey,
         userId,
         workspaceId,
-        startDate,
-        endDate,
+        selectedDate,
       );
-      exportToExcel(resource, callNo, timeEntries, endDate);
+      exportToExcel(resource, callNo, timeEntries, selectedDate);
     } catch (error) {
       console.error("Error fetching time entries:", error);
     }
+    setIsExporting(false);
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
   };
 
   return (
@@ -54,9 +56,9 @@ const Form = () => {
         required
         onChange={(e) => setUser({ ...user, callNo: e.target.value })}
       />
-      <Label>Date Range</Label>
-      <DatePickerWithRange onSelectDateRange={setSelectedDate} />
-      <Button type="submit">Generate</Button>
+      <Label>Week Ending</Label>
+      <DatePicker onSelectDate={handleDateSelect} />
+      <Button type="submit">{isExporting ? "Exporting..." : "Export"}</Button>
     </form>
   );
 };

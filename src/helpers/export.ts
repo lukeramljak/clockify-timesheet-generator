@@ -19,7 +19,7 @@ const exportToExcel = async (
   resource: string,
   callNo: string,
   timeEntries: TimeEntry[],
-  endDate: string,
+  date: string,
 ): Promise<void> => {
   try {
     const formattedEntries = formatEntries(resource, callNo, timeEntries);
@@ -106,9 +106,9 @@ const exportToExcel = async (
       column.width = columnWidths[index];
     });
 
-    const formattedEndDate = new Date(endDate);
+    const formattedEndDate = new Date(date);
     const year = formattedEndDate.getFullYear();
-    const month = formattedEndDate.getMonth() + 1;
+    const month = String(formattedEndDate.getMonth() + 1).padStart(2, "0");
     const day = formattedEndDate.getDate();
     const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
 
