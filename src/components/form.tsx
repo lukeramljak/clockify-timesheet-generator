@@ -29,7 +29,6 @@ const Form = () => {
         startDate,
         endDate,
       );
-      console.log(timeEntries);
       exportToExcel(resource, callNo, timeEntries, endDate);
     } catch (error) {
       console.error("Error fetching time entries:", error);

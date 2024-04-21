@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { addDays, format, isFriday, isMonday, startOfWeek } from "date-fns";
+import { addDays, format, startOfWeek } from "date-fns";
 import * as React from "react";
 import { DateRange } from "react-day-picker";
 
@@ -22,16 +22,10 @@ export function DatePickerWithRange({
   onSelectDateRange,
 }: DatePickerWithRangeProps) {
   const [date, setDate] = React.useState<DateRange | undefined>(() => {
-    const start = startOfWeek(new Date());
-    let monday = start;
-    while (!isMonday(monday)) {
-      monday = addDays(monday, 1);
-    }
-    let friday = start;
-    while (!isFriday(friday)) {
-      friday = addDays(friday, 1);
-    }
-    return { from: monday, to: friday };
+    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const end = addDays(start, 6);
+
+    return { from: start, to: end };
   });
 
   const handleDateSelect = (selectedDate: DateRange) => {
@@ -69,11 +63,11 @@ export function DatePickerWithRange({
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             initialFocus
+            ISOWeek
             mode="range"
             defaultMonth={date?.from}
             selected={date}
             onSelect={handleDateSelect}
-            numberOfMonths={1}
           />
         </PopoverContent>
       </Popover>

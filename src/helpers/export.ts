@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import ExcelJS, { Worksheet } from "exceljs";
 
 interface TimeEntry {
   billable: boolean;
@@ -12,17 +12,17 @@ const getDate = (timeInterval: { start: string }): string => {
 };
 
 const getHours = (duration: string): number => {
-  const MIN_DURATION = 0.25;
+  const minDuration = 0.25;
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(\d+)S/);
   if (match) {
     const hours = match[1] ? parseInt(match[1], 10) : 0;
     const minutes = match[2] ? parseInt(match[2], 10) : 0;
     const seconds = parseInt(match[3], 10);
     const totalHours = hours + minutes / 60 + seconds / 3600;
-    if (totalHours <= MIN_DURATION) {
-      return MIN_DURATION;
+    if (totalHours <= minDuration) {
+      return minDuration;
     } else {
-      const roundedHours = Math.ceil(totalHours * 4) / 4;
+      const roundedHours = Math.round(totalHours * 4) / 4;
       return roundedHours;
     }
   }
@@ -43,7 +43,7 @@ const getDescription = (description: string): string => {
   return description.split(" - ")[1];
 };
 
-const convertColumnToNumber = (worksheet, value: string) => {
+const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
     if (!isNaN(cell.value as number)) {
       cell.numFmt = "0.00";
