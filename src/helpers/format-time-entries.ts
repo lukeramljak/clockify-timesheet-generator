@@ -64,7 +64,7 @@ const formatTimeEntries = (
     const newCallNo = billable ? getCallNo(description) : callNo;
     const newDescription = billable ? getDescription(description) : description;
 
-    const key = `${date}_${code}_${newDescription}`;
+    const key = `${date}_${code}_${newCallNo}_${newDescription}`;
 
     if (mergedEntries[key]) {
       mergedEntries[key].hours += hours;
