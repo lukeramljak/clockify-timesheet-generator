@@ -3,7 +3,7 @@ import ExcelJS from "exceljs";
 interface TimeEntry {
   billable: boolean;
   description: string;
-  timeInterval: { start: string; end: string };
+  timeInterval: { duration: string; start: string; end: string };
 }
 
 const getDate = (timeInterval: { start: string }): string => {
@@ -11,14 +11,22 @@ const getDate = (timeInterval: { start: string }): string => {
   return startDate.toLocaleDateString("en-GB");
 };
 
-const getHours = (timeInterval: { start: string; end: string }): number => {
-  const durationSeconds =
-    Math.round(
-      new Date(timeInterval.end).getTime() -
-        new Date(timeInterval.start).getTime(),
-    ) / 1000;
-  const durationHours = durationSeconds / 3600;
-  return Math.round(durationHours * 4) / 4;
+const getHours = (duration: string): number => {
+  const MIN_DURATION = 0.25;
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(\d+)S/);
+  if (match) {
+    const hours = match[1] ? parseInt(match[1], 10) : 0;
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const seconds = parseInt(match[3], 10);
+    const totalHours = hours + minutes / 60 + seconds / 3600;
+    if (totalHours <= MIN_DURATION) {
+      return MIN_DURATION;
+    } else {
+      const roundedHours = Math.ceil(totalHours * 4) / 4;
+      return roundedHours;
+    }
+  }
+  return 0;
 };
 
 const getCallNo = (description: string): string => {
@@ -78,7 +86,7 @@ const exportToExcel = async (
     timeEntries.forEach(({ billable, description, timeInterval }, index) => {
       const dateValue = getDate(timeInterval);
       const codeValue = billable ? getCode(description) : "net";
-      const hoursValue = getHours(timeInterval);
+      const hoursValue = getHours(timeInterval.duration);
       const callNoValue = billable ? getCallNo(description) : callNo;
       const descriptionValue = billable
         ? getDescription(description)
