@@ -36,7 +36,12 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
       return callNoA.localeCompare(callNoB);
     });
 
+    const totals = {};
+    const lastIndexByCallNo = {};
+
     timeEntries.forEach(({ billable, description, timeInterval }, index) => {
+      const callNoValue = billable ? getCallNo(description) : callNo;
+
       const startDate = new Date(timeInterval.start);
       const formattedStartDate = startDate.toLocaleDateString("en-GB"); // Format date as DD/MM/YYYY
       const durationSeconds =
@@ -46,6 +51,16 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
         ) / 1000;
       const durationHours = durationSeconds / 3600;
       const roundedDuration = Math.round(durationHours * 4) / 4; // Round to the nearest quarter of an hour
+
+      if (!totals[callNoValue]) {
+        totals[callNoValue] = {
+          startRow: index + 2,
+          endRow: index + 2,
+        };
+        lastIndexByCallNo[callNoValue] = index;
+      } else {
+        totals[callNoValue].endRow = index + 2;
+      }
 
       const row = [
         resource,
@@ -58,11 +73,19 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
       ];
 
       worksheet.addRow(row);
+
+      lastIndexByCallNo[callNoValue] = index;
     });
 
-    // Set cell type for "Hours" column as number
     const hoursColumn = worksheet.getColumn("D");
     hoursColumn.eachCell({ includeEmpty: true }, (cell) => {
+      if (!isNaN(cell.value)) {
+        cell.numFmt = "0.00"; // Number format to display two decimal places
+      }
+    });
+
+    const totalsColumn = worksheet.getColumn("E");
+    totalsColumn.eachCell({ includeEmpty: true }, (cell) => {
       if (!isNaN(cell.value)) {
         cell.numFmt = "0.00"; // Number format to display two decimal places
       }
@@ -74,20 +97,23 @@ const exportToExcel = async (resource, callNo, timeEntries, endDate) => {
     };
     worksheet.getCell(`D${lastRowNumber + 1}`).numFmt = "0.00";
 
-    // Set filename
+    Object.keys(totals).forEach((callNoValue) => {
+      const { startRow, endRow } = totals[callNoValue];
+      const sumRange = `D${startRow}:D${endRow}`;
+      worksheet.getCell(`E${endRow}`).value = { formula: `SUM(${sumRange})` };
+    });
+
     const formattedEndDate = new Date(endDate);
     const year = formattedEndDate.getFullYear();
     const month = formattedEndDate.getMonth() + 1;
     const day = formattedEndDate.getDate();
     const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
 
-    // Save workbook to blob
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    // Create download link and trigger download
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
