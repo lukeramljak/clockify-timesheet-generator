@@ -49,7 +49,6 @@ const getProjectName = (projectId: string): string => {
   const project: Project | undefined = userData.projects?.find(
     (project) => project.id === projectId,
   );
-  console.log(project);
   if (!project) {
     throw new Error(`Project ${projectId} not found`);
   }
@@ -72,7 +71,7 @@ const formatTimeEntries = (
     let newDescription = billable ? getDescription(description) : description;
 
     if (includeProject) {
-      newDescription = `${newDescription} - ${getProjectName(projectId)}`;
+      newDescription = `${getProjectName(projectId)} - ${newDescription}`;
     }
 
     const key = `${date}_${newDescription}`;
