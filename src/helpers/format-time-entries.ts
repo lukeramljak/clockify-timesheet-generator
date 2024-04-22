@@ -1,8 +1,4 @@
-interface TimeEntry {
-  billable: boolean;
-  description: string;
-  timeInterval: { duration: string; start: string; end: string };
-}
+import { User } from "@/context/user-context";
 
 interface FormattedTimeEntry {
   resource: string;
@@ -44,19 +40,40 @@ const getDescription = (description: string): string => {
   return description.split(" - ")[1];
 };
 
+const getProjectName = (projectId: string): string => {
+  const userDataString = localStorage.getItem("user");
+  if (!userDataString) {
+    throw new Error("User data not found in localStorage");
+  }
+  const userData: User = JSON.parse(userDataString);
+  const project: Project | undefined = userData.projects?.find(
+    (project) => project.id === projectId,
+  );
+  console.log(project);
+  if (!project) {
+    throw new Error(`Project ${projectId} not found`);
+  }
+  return project.name;
+};
+
 const formatTimeEntries = (
   resource: string,
   callNo: string,
   timeEntries: TimeEntry[],
+  includeProject: boolean,
 ): FormattedTimeEntry[] => {
   const mergedEntries: { [key: string]: FormattedTimeEntry } = {};
 
-  timeEntries.forEach(({ billable, description, timeInterval }) => {
+  timeEntries.forEach(({ billable, description, projectId, timeInterval }) => {
     const date = getDate(timeInterval);
     const code = billable ? getCode(description) : "net";
     const hours = getHours(timeInterval.duration);
     const newCallNo = billable ? getCallNo(description) : callNo;
-    const newDescription = billable ? getDescription(description) : description;
+    let newDescription = billable ? getDescription(description) : description;
+
+    if (includeProject) {
+      newDescription = `${newDescription} - ${getProjectName(projectId)}`;
+    }
 
     const key = `${date}_${newDescription}`;
 

@@ -1,12 +1,6 @@
 import ExcelJS, { Worksheet } from "exceljs";
 import formatEntries from "./format-time-entries";
 
-interface TimeEntry {
-  billable: boolean;
-  description: string;
-  timeInterval: { duration: string; start: string; end: string };
-}
-
 const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
     if (!isNaN(cell.value as number)) {
@@ -20,9 +14,15 @@ const exportToExcel = async (
   callNo: string,
   timeEntries: TimeEntry[],
   date: Date,
+  includeProject: boolean,
 ): Promise<void> => {
   try {
-    const formattedEntries = formatEntries(resource, callNo, timeEntries);
+    const formattedEntries = formatEntries(
+      resource,
+      callNo,
+      timeEntries,
+      includeProject,
+    );
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sheet1");

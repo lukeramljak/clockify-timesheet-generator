@@ -2,13 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 type UserProviderProps = { children: React.ReactNode };
 
-type User = {
+export type User = {
   name?: string;
   userId?: string;
   resource?: string;
   callNo?: string;
   workspaceId?: string;
   apiKey?: string;
+  projects?: Project[];
 };
 
 export const UserContext = createContext<{
