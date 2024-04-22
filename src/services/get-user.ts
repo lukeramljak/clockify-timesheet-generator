@@ -4,7 +4,12 @@ interface ClockifyUser {
   defaultWorkspace: string;
 }
 
-const getUser = async (apiKey: string): Promise<ClockifyUser | null> => {
+interface GetUserResponse {
+  status: number;
+  data: ClockifyUser | null;
+}
+
+const getUser = async (apiKey: string): Promise<GetUserResponse> => {
   try {
     const url = "https://api.clockify.me/api/v1/user";
     const response = await fetch(url, {
@@ -16,10 +21,11 @@ const getUser = async (apiKey: string): Promise<ClockifyUser | null> => {
     if (!response.ok) {
       throw new Error(`HTTP error. Status: ${response.status}`);
     }
-    return (await response.json()) as ClockifyUser;
+    const data = await response.json();
+    return { status: response.status, data: data as ClockifyUser };
   } catch (error) {
     console.error("Error fetching user:", error);
-    return null;
+    return { status: 500, data: null };
   }
 };
 

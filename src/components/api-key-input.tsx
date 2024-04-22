@@ -1,26 +1,35 @@
+import { Label } from "@/components/ui/label";
 import { useUser } from "@/context/user-context";
+import getUser from "@/services/get-user";
+import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm, SubmitHandler } from "react-hook-form";
-import getUser from "@/services/get-user";
 
 type Inputs = {
   apiKey: string;
 };
 
 const ApiKeyInput = () => {
+  const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useUser();
   const { register, handleSubmit } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = (data: Inputs) => {
+    setIsLoading(true);
     getUser(data.apiKey).then((res) => {
-      setUser({
-        name: res?.name,
-        userId: res?.id,
-        workspaceId: res?.defaultWorkspace,
-        apiKey: data.apiKey,
-      });
+      if (res.status === 200) {
+        setUser({
+          name: res.data?.name,
+          userId: res.data?.id,
+          workspaceId: res.data?.defaultWorkspace,
+          apiKey: data.apiKey,
+        });
+      } else {
+        setError(true);
+      }
+      setIsLoading(false);
     });
   };
 
@@ -46,8 +55,9 @@ const ApiKeyInput = () => {
             placeholder="Enter API key..."
             {...register("apiKey")}
           />
-          <Button type="submit">Submit</Button>
+          <Button type="submit">{isLoading ? "Loading..." : "Submit"}</Button>
         </div>
+        {error && <p className="text-red-500 text-xs">Invalid API key</p>}
       </form>
     </div>
   );
