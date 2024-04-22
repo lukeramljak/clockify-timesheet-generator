@@ -1,5 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { format, isAfter, isFriday } from "date-fns";
+import { format, isFriday } from "date-fns";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import mostRecentFriday from "@/helpers/most-recent-friday";
 
 interface DatePickerWithRangeProps {
   className?: string;
@@ -21,11 +20,9 @@ export function DatePicker({
   className,
   onSelectDate,
 }: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<Date | undefined>(mostRecentFriday);
-  const today = new Date();
+  const [date, setDate] = React.useState<Date | undefined>(undefined);
 
   const disabledDays = (date: Date) => {
-    if (isAfter(date, today)) return true;
     return !isFriday(date);
   };
 
@@ -47,7 +44,7 @@ export function DatePicker({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
+            {date ? format(date, "dd/MM/yyyy") : <span>dd / mm / yyyy</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
