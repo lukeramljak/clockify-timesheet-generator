@@ -40,9 +40,7 @@ const HelpDialog = () => {
           <p className="font-medium">Additional Notes</p>
           <ul className="text-sm list-disc px-4">
             <li>Entries under 15 mins are rounded up.</li>
-            <li>
-              All other entries are rounded down to the nearest 15 minutes.
-            </li>
+            <li>All other entries are rounded to the nearest integer.</li>
           </ul>
         </div>
       </DialogContent>

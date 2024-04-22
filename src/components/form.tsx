@@ -50,7 +50,6 @@ const Form = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">Timesheet Generator</h1>
       <Label htmlFor="resource">Resource</Label>
       <Input
         type="text"
