@@ -10,6 +10,7 @@ export type User = {
   workspaceId?: string;
   apiKey?: string;
   projects?: Project[];
+  prefersProjectName?: boolean;
 };
 
 export const UserContext = createContext<{

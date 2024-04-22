@@ -17,10 +17,12 @@ const Form = () => {
     mostRecentFriday,
   );
   const [isExporting, setIsExporting] = useState(false);
-  const [includeProject, setIncludeProject] = useState(false);
   const { user, setUser } = useUser();
   const { resource, callNo, userId, workspaceId, apiKey } = user;
   const { handleSubmit } = useForm();
+  const [includeProject, setIncludeProject] = useState(
+    user.prefersProjectName || false,
+  );
 
   const onSubmit = async () => {
     try {
@@ -63,6 +65,7 @@ const Form = () => {
 
   const handleCheckboxChange = (isChecked: boolean) => {
     setIncludeProject(isChecked);
+    setUser((prev) => ({ ...prev, prefersProjectName: isChecked }));
   };
 
   const handleDateSelect = (date: Date | undefined) => {
