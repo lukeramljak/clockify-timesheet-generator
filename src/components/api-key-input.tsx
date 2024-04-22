@@ -42,10 +42,10 @@ const ApiKeyInput = () => {
             Get one at{" "}
             <a
               className="underline"
-              href="https://clockify.me/user/settings"
+              href="https://app.clockify.me/user/settings"
               target="_blank"
             >
-              https://clockify.me/user/settings
+              clockify.me/user/settings
             </a>
           </p>
         </div>
