@@ -100,7 +100,7 @@ const exportToExcel = async (
       }
     });
 
-    const columnWidths: number[] = [10, 12, 10, 10, 10, 12, 50];
+    const columnWidths: number[] = [10, 12, 10, 10, 10, 12, 80];
     worksheet.columns.forEach((column, index) => {
       column.width = columnWidths[index];
     });
