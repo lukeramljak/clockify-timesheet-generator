@@ -23,16 +23,17 @@ const HelpDialog = () => {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <p className="font-medium">All Entries</p>
+          <p className="font-medium">All Time Entries</p>
           <ul className="text-sm list-disc px-4">
-            <li>Add a description.</li>
+            <li>Enter a detailed description</li>
+            <li>Select a project</li>
           </ul>
-          <p className="font-medium">Client Work</p>
+          <p className="font-medium">Paid Client Work Only</p>
           <ul className="text-sm list-disc px-4">
-            <li>Click the billable icon - $.</li>
+            <li>Click the billable icon - $</li>
             <li>
-              Prefix the description with the client code. For example,
-              "abc00001 - Configuration work".
+              Prefix the description with the call number, i.e. "abc00001 -
+              Inspection form build"
             </li>
           </ul>
         </div>
