@@ -1,5 +1,6 @@
 import ExcelJS, { Worksheet } from "exceljs";
 import formatEntries from "./format-time-entries";
+import { TimeEntryType } from "clockify-ts";
 
 const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
@@ -12,7 +13,7 @@ const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
 const exportToExcel = async (
   resource: string,
   callNo: string,
-  timeEntries: TimeEntry[],
+  timeEntries: TimeEntryType[],
   date: Date,
   includeProject: boolean,
 ): Promise<void> => {

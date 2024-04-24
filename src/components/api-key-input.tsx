@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { useUser } from "@/context/user-context";
-import getUser from "@/services/get-user";
+import Clockify from "clockify-ts";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "./ui/button";
@@ -18,19 +18,24 @@ const ApiKeyInput = () => {
 
   const onSubmit: SubmitHandler<Inputs> = (data: Inputs) => {
     setIsLoading(true);
-    getUser(data.apiKey).then((res) => {
-      if (res.status === 200) {
+
+    const clockify = new Clockify(data.apiKey);
+    const fetchUser = async () => {
+      try {
+        const user = await clockify.user.get();
         setUser({
-          name: res.data?.name,
-          userId: res.data?.id,
-          workspaceId: res.data?.defaultWorkspace,
+          name: user.name,
+          userId: user.id,
+          workspaceId: user.defaultWorkspace,
           apiKey: data.apiKey,
         });
-      } else {
+        setIsLoading(false);
+      } catch (error) {
         setError(true);
       }
-      setIsLoading(false);
-    });
+    };
+
+    fetchUser();
   };
 
   return (

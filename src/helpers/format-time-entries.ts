@@ -1,4 +1,5 @@
 import { User } from "@/context/user-context";
+import { TimeEntryType } from "clockify-ts";
 
 interface FormattedTimeEntry {
   resource: string;
@@ -9,7 +10,7 @@ interface FormattedTimeEntry {
   description: string;
 }
 
-const getDate = (timeInterval: { start: string }): string => {
+const getDate = (timeInterval: TimeEntryType["timeInterval"]): string => {
   const startDate = new Date(timeInterval.start);
   return startDate.toLocaleDateString("en-GB");
 };
@@ -50,15 +51,15 @@ const getProjectName = (projectId: string): string => {
     (project) => project.id === projectId,
   );
   if (!project) {
-    throw new Error(`Project ${projectId} not found`);
+    return "";
   }
-  return project.name;
+  return `${project.name} - `;
 };
 
 const formatTimeEntries = (
   resource: string,
   callNo: string,
-  timeEntries: TimeEntry[],
+  timeEntries: TimeEntryType[],
   includeProject: boolean,
 ): FormattedTimeEntry[] => {
   const mergedEntries: { [key: string]: FormattedTimeEntry } = {};
@@ -71,7 +72,7 @@ const formatTimeEntries = (
     let newDescription = billable ? getDescription(description) : description;
 
     if (includeProject) {
-      newDescription = `${getProjectName(projectId)} - ${newDescription}`;
+      newDescription = `${getProjectName(projectId)}${newDescription}`;
     }
 
     const key = `${date}_${newDescription}`;

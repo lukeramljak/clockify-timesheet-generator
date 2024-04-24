@@ -2,9 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/user-context";
 import exportToExcel from "@/helpers/export";
 import mostRecentFriday from "@/helpers/most-recent-friday";
-import getProjects from "@/services/get-projects";
-import getTimeEntries from "@/services/get-time-entries";
-import { useEffect, useState } from "react";
+import Clockify from "clockify-ts";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { DatePicker } from "./date-picker";
 import HelpDialog from "./help-dialog";
@@ -23,24 +22,22 @@ const Form = () => {
   const [includeProject, setIncludeProject] = useState(
     user.prefersProjectName || false,
   );
+  const clockify = new Clockify(apiKey ?? "");
 
   const onSubmit = async () => {
     try {
       setIsExporting(true);
-      if (
-        apiKey &&
-        resource &&
-        userId &&
-        callNo &&
-        workspaceId &&
-        selectedDate
-      ) {
-        const timeEntries = await getTimeEntries(
-          apiKey,
-          userId,
-          workspaceId,
-          selectedDate,
-        );
+      if (resource && userId && callNo && workspaceId && selectedDate) {
+        const [timeEntries, projects] = await Promise.all([
+          clockify.workspace
+            .withId(workspaceId)
+            .users.withId(userId)
+            .timeEntries.get(),
+          clockify.workspace.withId(workspaceId).projects.get(),
+        ]);
+
+        setUser((prev) => ({ ...prev, projects: projects }));
+
         exportToExcel(
           resource,
           callNo,
@@ -54,14 +51,6 @@ const Form = () => {
     }
     setIsExporting(false);
   };
-
-  useEffect(() => {
-    if (user.apiKey && user.workspaceId) {
-      getProjects(user.apiKey, user.workspaceId).then((res) => {
-        setUser((prev) => ({ ...prev, projects: res }));
-      });
-    }
-  }, [user.apiKey, user.workspaceId]);
 
   const handleCheckboxChange = (isChecked: boolean) => {
     setIncludeProject(isChecked);

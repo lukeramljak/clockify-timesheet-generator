@@ -26,7 +26,6 @@ const HelpDialog = () => {
           <p className="font-medium">All Time Entries</p>
           <ul className="text-sm list-disc px-4">
             <li>Enter a detailed description</li>
-            <li>Select a project</li>
           </ul>
           <p className="font-medium">Paid Client Work Only</p>
           <ul className="text-sm list-disc px-4">
