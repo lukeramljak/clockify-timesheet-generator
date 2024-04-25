@@ -23,7 +23,7 @@ npm run start
 ```
 
 ## Acknowledgements
-* [clockify-ts](https://github.com/polygon-software/clockify-ts) for making a great library to interface with Clockify's API.
+* [clockify-ts](https://github.com/polygon-software/clockify-ts) for making an extensive and easy to use library to interface with Clockify's API.
 
 ## Contributing
 This is a personal project, contributions are not accepted.
