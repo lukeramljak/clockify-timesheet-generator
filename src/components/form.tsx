@@ -3,6 +3,7 @@ import { useUser } from "@/context/user-context";
 import exportToExcel from "@/helpers/export";
 import mostRecentFriday from "@/helpers/most-recent-friday";
 import Clockify from "clockify-ts";
+import { format } from "date-fns";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { DatePicker } from "./date-picker";
@@ -32,7 +33,12 @@ const Form = () => {
           clockify.workspace
             .withId(workspaceId)
             .users.withId(userId)
-            .timeEntries.get(),
+            .timeEntries.get({
+              "get-week-before": format(
+                new Date(selectedDate),
+                "yyyy-MM-dd'T'23:59:59.999'Z'",
+              ),
+            }),
           clockify.workspace.withId(workspaceId).projects.get(),
         ]);
 
