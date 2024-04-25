@@ -23,8 +23,9 @@ const Form = () => {
   const clockify = new Clockify(apiKey ?? "");
 
   const onSubmit = async () => {
+    setIsExporting(true);
+
     try {
-      setIsExporting(true);
       if (resource && userId && callNo && workspaceId && selectedDate) {
         const [timeEntries, projects] = await Promise.all([
           clockify.workspace
@@ -41,18 +42,19 @@ const Form = () => {
 
         setUser((prev) => ({ ...prev, projects: projects }));
 
-        exportToExcel(
+        await exportToExcel(
           resource,
           callNo,
           timeEntries,
           selectedDate,
           includeProject,
         );
+
+        setIsExporting(false);
       }
     } catch (error) {
       console.error("Error fetching time entries:", error);
     }
-    setIsExporting(false);
   };
 
   const handleCheckboxChange = (isChecked: boolean) => {

@@ -16,26 +16,25 @@ const ApiKeyInput = () => {
   const { setUser } = useUser();
   const { register, handleSubmit } = useForm<Inputs>();
 
-  const onSubmit: SubmitHandler<Inputs> = (data: Inputs) => {
+  const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
     setIsLoading(true);
 
-    const clockify = new Clockify(data.apiKey);
-    const fetchUser = async () => {
-      try {
-        const user = await clockify.user.get();
-        setUser({
-          name: user.name,
-          userId: user.id,
-          workspaceId: user.defaultWorkspace,
-          apiKey: data.apiKey,
-        });
-        setIsLoading(false);
-      } catch (error) {
-        setError(true);
-      }
-    };
+    try {
+      const clockify = new Clockify(data.apiKey);
+      const user = await clockify.user.get();
 
-    fetchUser();
+      setUser({
+        name: user.name,
+        userId: user.id,
+        workspaceId: user.defaultWorkspace,
+        apiKey: data.apiKey,
+      });
+
+      setIsLoading(false);
+    } catch (error) {
+      setError(true);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -46,6 +45,7 @@ const ApiKeyInput = () => {
           <p className="text-xs text-muted-foreground">
             Get one at{" "}
             <a
+              rel="noreferrer"
               className="underline"
               href="https://app.clockify.me/user/settings"
               target="_blank"

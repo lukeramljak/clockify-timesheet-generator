@@ -32,8 +32,8 @@ const HelpDialog = () => {
           <ul className="text-sm list-disc px-4">
             <li>Click the billable icon - $</li>
             <li>
-              Prefix the description with the call number, i.e. "abc00001 -
-              Inspection form build"
+              Prefix the description with the call number, i.e. &quot;abc00001 -
+              Inspection form building&quot;
             </li>
           </ul>
         </div>

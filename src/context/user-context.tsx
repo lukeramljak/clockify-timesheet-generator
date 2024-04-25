@@ -1,3 +1,4 @@
+import { ProjectType } from "clockify-ts";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type UserProviderProps = { children: React.ReactNode };
@@ -9,7 +10,7 @@ export type User = {
   callNo?: string;
   workspaceId?: string;
   apiKey?: string;
-  projects?: Project[];
+  projects?: ProjectType[];
   prefersProjectName?: boolean;
 };
 
@@ -23,7 +24,7 @@ export const UserContext = createContext<{
 
 export const UserProvider = ({ children }: UserProviderProps) => {
   const [user, setUser] = useState<User>(
-    JSON.parse(localStorage.getItem("user") || "{}"),
+    JSON.parse(localStorage.getItem("user") || "{}") as User,
   );
 
   useEffect(() => {

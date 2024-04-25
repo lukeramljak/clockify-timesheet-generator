@@ -1,5 +1,5 @@
 import { User } from "@/context/user-context";
-import { TimeEntryType } from "clockify-ts";
+import { ProjectType, TimeEntryType } from "clockify-ts";
 
 interface FormattedTimeEntry {
   resource: string;
@@ -46,8 +46,8 @@ const getProjectName = (projectId: string): string => {
   if (!userDataString) {
     throw new Error("User data not found in localStorage");
   }
-  const userData: User = JSON.parse(userDataString);
-  const project: Project | undefined = userData.projects?.find(
+  const userData = JSON.parse(userDataString) as User;
+  const project: ProjectType | undefined = userData.projects?.find(
     (project) => project.id === projectId,
   );
   if (!project) {
