@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/user-context";
 import exportToExcel from "@/helpers/export";
-import mostRecentFriday from "@/helpers/most-recent-friday";
 import Clockify from "clockify-ts";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -13,9 +12,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
 const Form = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    mostRecentFriday,
-  );
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isExporting, setIsExporting] = useState(false);
   const { user, setUser } = useUser();
   const { resource, callNo, userId, workspaceId, apiKey } = user;
