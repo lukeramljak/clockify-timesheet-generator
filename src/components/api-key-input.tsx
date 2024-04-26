@@ -1,22 +1,38 @@
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useUser } from "@/context/user-context";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Clockify from "clockify-ts";
 import { useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-type Inputs = {
-  apiKey: string;
-};
+const formSchema = z.object({
+  apiKey: z.string().min(1, {
+    message: "Field cannot be empty",
+  }),
+});
 
 const ApiKeyInput = () => {
-  const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useUser();
-  const { register, handleSubmit } = useForm<Inputs>();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      apiKey: "",
+    },
+  });
 
-  const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
     try {
@@ -32,39 +48,52 @@ const ApiKeyInput = () => {
 
       setIsLoading(false);
     } catch (error) {
-      setError(true);
+      form.setError("apiKey", {
+        type: "manual",
+        message: "Invalid API key",
+      });
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-sm">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-        <div>
-          <Label htmlFor="apiKey">Clockify API Key</Label>
-          <p className="text-xs text-muted-foreground">
-            Get one at{" "}
-            <a
-              rel="noreferrer"
-              className="underline"
-              href="https://app.clockify.me/user/settings"
-              target="_blank"
-            >
-              clockify.me/user/settings
-            </a>
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Input
-            required
-            placeholder="Enter API key..."
-            {...register("apiKey")}
+    <Form {...form}>
+      <div className="w-full max-w-sm">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+          <FormField
+            control={form.control}
+            name="apiKey"
+            render={({ field }) => (
+              <FormItem>
+                <div className="space-y-1">
+                  <FormLabel>Clockify API Key</FormLabel>
+                  <FormDescription>
+                    Get one at{" "}
+                    <a
+                      rel="noreferrer"
+                      className="underline"
+                      href="https://app.clockify.me/user/settings"
+                      target="_blank"
+                    >
+                      clockify.me/user/settings
+                    </a>
+                  </FormDescription>
+                </div>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input placeholder="Enter API key..." {...field} />
+                  </FormControl>
+                  <Button type="submit">
+                    {isLoading ? "Loading..." : "Submit"}
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <Button type="submit">{isLoading ? "Loading..." : "Submit"}</Button>
-        </div>
-        {error && <p className="text-red-500 text-xs">Invalid API key</p>}
-      </form>
-    </div>
+        </form>
+      </div>
+    </Form>
   );
 };
 

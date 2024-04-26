@@ -1,7 +1,5 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { format, isFriday } from "date-fns";
-import * as React from "react";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -11,24 +9,19 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-interface DatePickerWithRangeProps {
-  className?: string;
-  onSelectDate: (date: Date | undefined) => void;
+interface DateField {
+  value: Date;
+  onChange: (newValue: Date | undefined) => void;
 }
 
-export function DatePicker({
-  className,
-  onSelectDate,
-}: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<Date | undefined>(undefined);
+interface DatePickerWithRangeProps {
+  className?: string;
+  field: DateField;
+}
 
+export function DatePicker({ className, field }: DatePickerWithRangeProps) {
   const disabledDays = (date: Date) => {
     return !isFriday(date);
-  };
-
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    setDate(selectedDate);
-    onSelectDate(selectedDate);
   };
 
   return (
@@ -40,11 +33,15 @@ export function DatePicker({
             variant={"outline"}
             className={cn(
               "w-auto justify-start text-left font-normal",
-              !date && "text-muted-foreground",
+              !field.value && "text-muted-foreground",
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "dd/MM/yyyy") : <span>dd / mm / yyyy</span>}
+            {field.value ? (
+              format(field.value, "dd/MM/yyyy")
+            ) : (
+              <span>dd / mm / yyyy</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -52,9 +49,9 @@ export function DatePicker({
             initialFocus
             ISOWeek
             mode="single"
-            selected={date}
+            selected={field.value}
             disabled={disabledDays}
-            onSelect={handleDateSelect}
+            onSelect={field.onChange}
           />
         </PopoverContent>
       </Popover>
