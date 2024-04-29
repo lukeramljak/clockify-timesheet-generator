@@ -35,6 +35,7 @@ const TimesheetForm = () => {
     callNo,
     prefersProjectName,
     setResource,
+    setApiKey,
     setCallNo,
     setProjects,
     setPrefersProjectName,
@@ -86,70 +87,77 @@ const TimesheetForm = () => {
   };
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4">
-        <FormField
-          control={form.control}
-          name="resource"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Resource</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="callNo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Call No</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Week Ending</FormLabel>
-              <FormControl>
-                <DatePicker field={field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="includeProject"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex items-center gap-2">
+    <>
+      <Button
+        variant={"link"}
+        className="absolute top-4 right-4"
+        onClick={() => setApiKey("")}>
+        Clear API Key
+      </Button>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="resource"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Resource</FormLabel>
                 <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Input {...field} />
                 </FormControl>
-                <FormLabel>Include project name</FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-        <Button type="submit">{isExporting ? "Exporting..." : "Export"}</Button>
-        <HelpDialog />
-      </form>
-    </Form>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="callNo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Call No</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Week Ending</FormLabel>
+                <FormControl>
+                  <DatePicker field={field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="includeProject"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel>Include project name</FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
+          <Button type="submit">
+            {isExporting ? "Exporting..." : "Export"}
+          </Button>
+          <HelpDialog />
+        </form>
+      </Form>
+    </>
   );
 };
 
