@@ -19,19 +19,24 @@ type UserStore = {
   setApiKey: (newApiKey: string) => void;
   setProjects: (newProjects: ProjectType[]) => void;
   setPrefersProjectName: (newPreference: boolean) => void;
+  reset: () => void;
+};
+
+const initialState = {
+  name: "",
+  userId: "",
+  resource: "",
+  callNo: "",
+  workspaceId: "",
+  apiKey: "",
+  projects: [],
+  prefersProjectName: false,
 };
 
 export const useUserStore = create<UserStore>()(
   persist(
     (set) => ({
-      name: "",
-      userId: "",
-      resource: "",
-      callNo: "",
-      workspaceId: "",
-      apiKey: "",
-      projects: [],
-      prefersProjectName: false,
+      ...initialState,
       setName: (newName) => set({ name: newName }),
       setUserId: (newUserId) => set({ userId: newUserId }),
       setResource: (newResource) => set({ resource: newResource }),
@@ -41,6 +46,7 @@ export const useUserStore = create<UserStore>()(
       setProjects: (newProjects) => set({ projects: newProjects }),
       setPrefersProjectName: (newPreference) =>
         set({ prefersProjectName: newPreference }),
+      reset: () => set(initialState),
     }),
     {
       name: "user",

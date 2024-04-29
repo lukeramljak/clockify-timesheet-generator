@@ -1,6 +1,6 @@
 import { useUserStore } from "@/store";
 import ApiKeyInput from "./api-key-input";
-import TimesheetForm from "./form";
+import TimesheetForm from "./timesheet-form";
 
 const Content = () => {
   const apiKey = useUserStore((state) => state.apiKey);

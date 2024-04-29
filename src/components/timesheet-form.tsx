@@ -38,10 +38,10 @@ const TimesheetForm = () => {
     callNo,
     prefersProjectName,
     setResource,
-    setApiKey,
     setCallNo,
     setProjects,
     setPrefersProjectName,
+    reset,
   } = useUserStore();
   const clockify = new Clockify(apiKey);
 
@@ -94,7 +94,7 @@ const TimesheetForm = () => {
       <Button
         variant={"link"}
         className="absolute top-4 right-4"
-        onClick={() => setApiKey("")}>
+        onClick={() => reset()}>
         Clear API Key
       </Button>
       <Form {...form}>
