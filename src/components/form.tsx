@@ -136,6 +136,7 @@ const TimesheetForm = () => {
                 <FormControl>
                   <DatePicker field={field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
