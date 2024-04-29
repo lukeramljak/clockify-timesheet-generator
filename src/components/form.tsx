@@ -8,6 +8,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import exportToExcel from "@/helpers/export";
@@ -21,8 +22,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
-  resource: z.string().max(3),
-  callNo: z.string().max(8),
+  resource: z.string().regex(/^[A-Z]+$/, { message: "Must be all caps" }),
+  callNo: z.string().regex(/^net\d{5}$/, { message: "Invalid format" }),
   date: z.date(),
   includeProject: z.boolean(),
 });
@@ -109,6 +110,7 @@ const TimesheetForm = () => {
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -121,6 +123,7 @@ const TimesheetForm = () => {
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
