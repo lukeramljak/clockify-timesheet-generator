@@ -10,8 +10,9 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/context/user-context";
 import exportToExcel from "@/helpers/export";
+import formatTimeEntries from "@/helpers/format-time-entries";
+import { useUserStore } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Clockify from "clockify-ts";
 import { format } from "date-fns";
@@ -28,17 +29,25 @@ const formSchema = z.object({
 
 const TimesheetForm = () => {
   const [isExporting, setIsExporting] = useState(false);
-  const { user, setUser } = useUser();
-  const { userId, workspaceId, apiKey } = user;
-  const clockify = new Clockify(apiKey ?? "");
+  const { userId, workspaceId, apiKey } = useUserStore();
+  const {
+    resource,
+    callNo,
+    prefersProjectName,
+    setResource,
+    setCallNo,
+    setProjects,
+    setPrefersProjectName,
+  } = useUserStore();
+  const clockify = new Clockify(apiKey);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      resource: user.resource,
-      callNo: user.callNo,
+      resource: resource,
+      callNo: callNo,
       date: undefined,
-      includeProject: user.prefersProjectName || false,
+      includeProject: prefersProjectName || false,
     },
   });
 
@@ -54,27 +63,20 @@ const TimesheetForm = () => {
             .timeEntries.get({
               "get-week-before": format(
                 new Date(data.date),
-                "yyyy-MM-dd'T'23:59:59.999'Z'",
+                "yyyy-MM-dd'T'23:59:59.999'Z'"
               ),
             }),
           clockify.workspace.withId(workspaceId).projects.get(),
         ]);
 
-        setUser((prev) => ({
-          ...prev,
-          resource: data.resource,
-          callNo: data.callNo,
-          prefersProjectName: data.includeProject,
-          projects: projects,
-        }));
+        setResource(data.resource);
+        setCallNo(data.callNo);
+        setProjects(projects);
+        setPrefersProjectName(data.includeProject);
 
-        await exportToExcel(
-          data.resource,
-          data.callNo,
-          timeEntries,
-          data.date,
-          data.includeProject,
-        );
+        const formattedTimeEntries = formatTimeEntries(timeEntries);
+
+        await exportToExcel(formattedTimeEntries, data.date);
 
         setIsExporting(false);
       }
@@ -87,8 +89,7 @@ const TimesheetForm = () => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
-      >
+        className="flex flex-col gap-4">
         <FormField
           control={form.control}
           name="resource"

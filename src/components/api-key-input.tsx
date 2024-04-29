@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/context/user-context";
+import { useUserStore } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Clockify from "clockify-ts";
 import { useState } from "react";
@@ -24,13 +24,21 @@ const formSchema = z.object({
 
 const ApiKeyInput = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { setUser } = useUser();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       apiKey: "",
     },
   });
+
+  const { setName, setUserId, setWorkspaceId, setApiKey } = useUserStore(
+    (state) => ({
+      setName: state.setName,
+      setUserId: state.setUserId,
+      setWorkspaceId: state.setWorkspaceId,
+      setApiKey: state.setApiKey,
+    })
+  );
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -39,12 +47,10 @@ const ApiKeyInput = () => {
       const clockify = new Clockify(data.apiKey);
       const user = await clockify.user.get();
 
-      setUser({
-        name: user.name,
-        userId: user.id,
-        workspaceId: user.defaultWorkspace,
-        apiKey: data.apiKey,
-      });
+      setName(user.name);
+      setUserId(user.id);
+      setWorkspaceId(user.defaultWorkspace);
+      setApiKey(data.apiKey);
 
       setIsLoading(false);
     } catch (error) {
@@ -73,8 +79,7 @@ const ApiKeyInput = () => {
                       rel="noreferrer"
                       className="underline"
                       href="https://app.clockify.me/user/settings"
-                      target="_blank"
-                    >
+                      target="_blank">
                       clockify.me/user/settings
                     </a>
                   </FormDescription>

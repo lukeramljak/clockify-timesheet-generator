@@ -1,14 +1,5 @@
-import { User } from "@/context/user-context";
+import { useUserStore } from "@/store";
 import { ProjectType, TimeEntryType } from "clockify-ts";
-
-interface FormattedTimeEntry {
-  resource: string;
-  date: string;
-  code: string;
-  hours: number;
-  callNo: string;
-  description: string;
-}
 
 const getDate = (timeInterval: TimeEntryType["timeInterval"]): string => {
   const startDate = new Date(timeInterval.start);
@@ -42,13 +33,10 @@ const getDescription = (description: string): string => {
 };
 
 const getProjectName = (projectId: string): string => {
-  const userDataString = localStorage.getItem("user");
-  if (!userDataString) {
-    throw new Error("User data not found in localStorage");
-  }
-  const userData = JSON.parse(userDataString) as User;
-  const project: ProjectType | undefined = userData.projects?.find(
-    (project) => project.id === projectId,
+  const { projects } = useUserStore.getState();
+
+  const project: ProjectType | undefined = projects?.find(
+    (project) => project.id === projectId
   );
   if (!project) {
     return "";
@@ -57,11 +45,10 @@ const getProjectName = (projectId: string): string => {
 };
 
 const formatTimeEntries = (
-  resource: string,
-  callNo: string,
-  timeEntries: TimeEntryType[],
-  includeProject: boolean,
+  timeEntries: TimeEntryType[]
 ): FormattedTimeEntry[] => {
+  const { resource, callNo, prefersProjectName } = useUserStore.getState();
+
   const mergedEntries: { [key: string]: FormattedTimeEntry } = {};
 
   timeEntries.forEach(({ billable, description, projectId, timeInterval }) => {
@@ -71,7 +58,7 @@ const formatTimeEntries = (
     const newCallNo = billable ? getCallNo(description) : callNo;
     let newDescription = billable ? getDescription(description) : description;
 
-    if (includeProject) {
+    if (prefersProjectName) {
       newDescription = `${getProjectName(projectId)}${newDescription}`;
     }
 

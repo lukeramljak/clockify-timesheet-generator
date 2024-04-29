@@ -1,6 +1,5 @@
+import { useUserStore } from "@/store";
 import ExcelJS, { Worksheet } from "exceljs";
-import formatEntries from "./format-time-entries";
-import { TimeEntryType } from "clockify-ts";
 
 const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
@@ -11,20 +10,12 @@ const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
 };
 
 const exportToExcel = async (
-  resource: string,
-  callNo: string,
-  timeEntries: TimeEntryType[],
-  date: Date,
-  includeProject: boolean,
+  timeEntries: FormattedTimeEntry[],
+  date: Date
 ): Promise<void> => {
-  try {
-    const formattedEntries = formatEntries(
-      resource,
-      callNo,
-      timeEntries,
-      includeProject,
-    );
+  const resource = useUserStore.getState().resource;
 
+  try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sheet1");
 
@@ -39,7 +30,7 @@ const exportToExcel = async (
     ];
     worksheet.addRow(headers);
 
-    formattedEntries.sort((a, b) => {
+    timeEntries.sort((a, b) => {
       if (a.callNo < b.callNo) return -1;
       if (a.callNo > b.callNo) return 1;
       return 0;
@@ -51,7 +42,7 @@ const exportToExcel = async (
     const lastIndexByCallNo: { [callNoValue: string]: number } = {};
     const callNoOccurrences: { [callNoValue: string]: number } = {};
 
-    formattedEntries.forEach(
+    timeEntries.forEach(
       ({ resource, date, code, hours, callNo, description }, index) => {
         if (!totals[callNo]) {
           totals[callNo] = {
@@ -77,7 +68,7 @@ const exportToExcel = async (
 
         lastIndexByCallNo[callNo] = index;
         callNoOccurrences[callNo] = (callNoOccurrences[callNo] || 0) + 1;
-      },
+      }
     );
 
     convertColumnToNumber(worksheet, "D");
