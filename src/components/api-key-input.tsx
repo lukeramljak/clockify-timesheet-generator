@@ -24,21 +24,13 @@ const formSchema = z.object({
 
 const ApiKeyInput = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { setName, setUserId, setWorkspaceId, setApiKey } = useUserStore();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       apiKey: "",
     },
   });
-
-  const { setName, setUserId, setWorkspaceId, setApiKey } = useUserStore(
-    (state) => ({
-      setName: state.setName,
-      setUserId: state.setUserId,
-      setWorkspaceId: state.setWorkspaceId,
-      setApiKey: state.setApiKey,
-    })
-  );
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);

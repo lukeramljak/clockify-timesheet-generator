@@ -29,8 +29,10 @@ const formSchema = z.object({
 
 const TimesheetForm = () => {
   const [isExporting, setIsExporting] = useState(false);
-  const { userId, workspaceId, apiKey } = useUserStore();
   const {
+    userId,
+    workspaceId,
+    apiKey,
     resource,
     callNo,
     prefersProjectName,
