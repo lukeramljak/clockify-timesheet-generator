@@ -70,9 +70,10 @@ const ApiKeyInput = () => {
                     <a
                       rel="noreferrer"
                       className="underline"
-                      href="https://app.clockify.me/user/settings"
-                      target="_blank">
-                      clockify.me/user/settings
+                      href="https://app.clockify.me/user/preferences#advanced"
+                      target="_blank"
+                    >
+                      clockify.me/user/preferences
                     </a>
                   </FormDescription>
                 </div>
