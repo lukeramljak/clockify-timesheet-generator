@@ -19,6 +19,7 @@ import Clockify from "clockify-ts";
 import { format } from "date-fns";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -67,7 +68,7 @@ const TimesheetForm = () => {
             .timeEntries.get({
               "get-week-before": format(
                 new Date(data.date),
-                "yyyy-MM-dd'T'23:59:59.999'Z'"
+                "yyyy-MM-dd'T'23:59:59.999'Z'",
               ),
             }),
           clockify.workspace.withId(workspaceId).projects.get(),
@@ -78,14 +79,20 @@ const TimesheetForm = () => {
         setProjects(projects);
         setPrefersProjectName(data.includeProject);
 
+        timeEntries.forEach((entry) => {
+          if (!entry.timeInterval.duration) {
+            throw Error("Unable to generate timesheet with an active timer.");
+          }
+        });
+
         const formattedTimeEntries = formatTimeEntries(timeEntries);
 
         await exportToExcel(formattedTimeEntries, data.date);
-
-        setIsExporting(false);
       }
     } catch (error) {
-      console.error("Error fetching time entries:", error);
+      toast.error(error as string);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -94,13 +101,15 @@ const TimesheetForm = () => {
       <Button
         variant={"link"}
         className="absolute top-4 right-4"
-        onClick={() => reset()}>
+        onClick={() => reset()}
+      >
         Clear API Key
       </Button>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-4">
+          className="flex flex-col gap-4"
+        >
           <FormField
             control={form.control}
             name="resource"
