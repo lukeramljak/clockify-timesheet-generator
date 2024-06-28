@@ -29,7 +29,8 @@ const getCode = (description: string): string => {
 };
 
 const getDescription = (description: string): string => {
-  return description.split(" - ")[1];
+  const parts = description.split("-");
+  return parts.slice(1).join("-").trim();
 };
 
 const getProjectName = (projectId: string): string => {
