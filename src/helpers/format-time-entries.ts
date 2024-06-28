@@ -62,7 +62,7 @@ const formatTimeEntries = (
       newDescription = `${getProjectName(projectId)}${newDescription}`;
     }
 
-    const key = `${date}_${newDescription}`;
+    const key = `${date}_${code}_${newDescription}`;
 
     if (mergedEntries[key]) {
       mergedEntries[key].hours += hours;
