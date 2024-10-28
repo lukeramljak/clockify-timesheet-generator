@@ -11,7 +11,7 @@ const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
 
 const exportToExcel = async (
   timeEntries: FormattedTimeEntry[],
-  date: Date
+  date: Date,
 ): Promise<void> => {
   const resource = useUserStore.getState().resource;
 
@@ -68,7 +68,7 @@ const exportToExcel = async (
 
         lastIndexByCallNo[callNo] = index;
         callNoOccurrences[callNo] = (callNoOccurrences[callNo] || 0) + 1;
-      }
+      },
     );
 
     convertColumnToNumber(worksheet, "D");
@@ -79,6 +79,11 @@ const exportToExcel = async (
       formula: `SUM(D2:D${lastRowNumber})`,
     };
     worksheet.getCell(`D${lastRowNumber + 1}`).numFmt = "0.00";
+
+    worksheet.getCell(`E${lastRowNumber + 1}`).value = {
+      formula: `SUM(E2:E${lastRowNumber})`,
+    };
+    worksheet.getCell(`E${lastRowNumber + 1}`).numFmt = "0.00";
 
     Object.keys(totals).forEach((callNo) => {
       const { startRow, endRow } = totals[callNo];
