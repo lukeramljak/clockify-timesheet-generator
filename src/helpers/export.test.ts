@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import exportToExcel, { generateFileName } from "@/helpers/export";
+import {
+  exportToExcel,
+  generateFileName,
+  downloadFile,
+  EXCEL_MIME_TYPE,
+} from "@/helpers/export";
 
 const mockUser = {
   resource: "USR",
@@ -92,5 +97,30 @@ describe("generateFileName", () => {
   it("should set the file name of the downloaded file correctly", async () => {
     await exportToExcel(mockTimeEntries, mockDate);
     expect(mockElement.download).toBe(expectedOutput);
+  });
+});
+
+describe("downloadFile", () => {
+  it("should reject blobs with incorrect MIME type", () => {
+    const invalidBlob = new Blob(["test"], { type: "text/plain" });
+
+    expect(() => {
+      downloadFile(invalidBlob, "test.xlsx");
+    }).toThrow(/Invalid file type/i);
+  });
+
+  it("should handle empty or invalid buffer", () => {
+    expect(() => {
+      const emptyBlob = new Blob([], { type: EXCEL_MIME_TYPE });
+      downloadFile(emptyBlob, "empty.xlsx");
+    }).toThrow(/Invalid Excel buffer/i);
+  });
+
+  it("should validate filename extension", () => {
+    const validBlob = new Blob([new ArrayBuffer(8)], { type: EXCEL_MIME_TYPE });
+
+    expect(() => {
+      downloadFile(validBlob, "test.txt");
+    }).toThrow(/Must be .xlsx/i);
   });
 });

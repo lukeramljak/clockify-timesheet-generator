@@ -1,6 +1,9 @@
 import { useUserStore } from "@/store";
 import ExcelJS, { Worksheet } from "exceljs";
 
+export const EXCEL_MIME_TYPE =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
 const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
     if (!isNaN(cell.value as number)) {
@@ -18,7 +21,39 @@ export const generateFileName = (resource: string, date: Date): string => {
   return fileName;
 };
 
-const exportToExcel = async (
+export const downloadFile = (blob: Blob, fileName: string): void => {
+  if (blob.type !== EXCEL_MIME_TYPE) {
+    throw new Error("Invalid file type. Expected Excel file.");
+  }
+
+  if (blob.size === 0) {
+    throw new Error("Invalid Excel buffer");
+  }
+
+  if (!fileName.endsWith(".xlsx")) {
+    throw new Error("Invalid file extension. Must be .xlsx");
+  }
+
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+
+    try {
+      document.body.appendChild(a);
+      a.click();
+    } finally {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  } catch (error) {
+    console.error("Failed to download file:", error);
+    throw error;
+  }
+};
+
+export const exportToExcel = async (
   timeEntries: FormattedTimeEntry[],
   date: Date,
 ): Promise<void> => {
@@ -114,21 +149,10 @@ const exportToExcel = async (
     const fileName = generateFileName(resource, date);
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+    const blob = new Blob([buffer], { type: EXCEL_MIME_TYPE });
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadFile(blob, fileName);
   } catch (error) {
     console.error("Failed to export to Excel:", error);
   }
 };
-
-export default exportToExcel;
