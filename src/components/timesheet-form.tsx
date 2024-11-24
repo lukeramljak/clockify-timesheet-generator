@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import exportToExcel from "@/helpers/export";
-import formatTimeEntries from "@/helpers/format-time-entries";
+import { formatTimeEntries } from "@/helpers/time-entries";
 import { useUserStore } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Clockify from "clockify-ts";
@@ -85,7 +85,15 @@ const TimesheetForm = () => {
           }
         });
 
-        const formattedTimeEntries = formatTimeEntries(timeEntries);
+        const formattedTimeEntries = formatTimeEntries(
+          {
+            resource: data.resource,
+            callNo: data.callNo,
+            projects,
+            prefersProjectName: data.includeProject,
+          },
+          timeEntries,
+        );
 
         await exportToExcel(formattedTimeEntries, data.date);
       }
