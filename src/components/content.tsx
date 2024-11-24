@@ -1,5 +1,5 @@
 import { useUserStore } from "@/store";
-import ApiKeyInput from "./api-key-input";
+import { ApiKeyInput } from "@/components/api-key-input/api-key-input";
 import TimesheetForm from "./timesheet-form";
 
 const Content = () => {
