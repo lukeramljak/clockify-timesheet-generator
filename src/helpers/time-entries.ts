@@ -43,6 +43,16 @@ export const getProjectName = (
   return project ? project.name : "";
 };
 
+export const sortTimeEntriesByCallNo = (
+  timeEntries: FormattedTimeEntry[],
+): FormattedTimeEntry[] => {
+  return timeEntries.sort((a, b) => {
+    if (a.callNo < b.callNo) return -1;
+    if (a.callNo > b.callNo) return 1;
+    return 0;
+  });
+};
+
 export const formatTimeEntries = (
   user: Pick<User, "resource" | "callNo" | "projects" | "prefersProjectName">,
   timeEntries: TimeEntryType[],
@@ -76,5 +86,7 @@ export const formatTimeEntries = (
     }
   });
 
-  return Object.values(mergedEntries);
+  const sortedEntries = sortTimeEntriesByCallNo(Object.values(mergedEntries));
+
+  return sortedEntries;
 };

@@ -74,12 +74,6 @@ export const exportToExcel = async (
     ];
     worksheet.addRow(headers);
 
-    timeEntries.sort((a, b) => {
-      if (a.callNo < b.callNo) return -1;
-      if (a.callNo > b.callNo) return 1;
-      return 0;
-    });
-
     const totals: {
       [callNoValue: string]: { startRow: number; endRow: number };
     } = {};

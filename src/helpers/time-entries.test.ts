@@ -6,6 +6,7 @@ import {
   getDescription,
   getHours,
   getProjectName,
+  sortTimeEntriesByCallNo,
 } from "@/helpers/time-entries";
 import { User } from "@/store";
 import { ProjectType, TimeEntryType } from "clockify-ts";
@@ -311,5 +312,99 @@ describe("formatTimeEntries", () => {
     const result = formatTimeEntries(mockUser, timeEntries);
 
     expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("sortEntriesByCallNo", () => {
+  it("should sort time entries alphabetically and numerically by callNo", () => {
+    const timeEntries: FormattedTimeEntry[] = [
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "net",
+        hours: 8,
+        callNo: mockUser.callNo,
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "abc",
+        hours: 8,
+        callNo: "abc23456",
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "abc",
+        hours: 8,
+        callNo: "abc12345",
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "xyz",
+        hours: 8,
+        callNo: "xyz12345",
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "def",
+        hours: 8,
+        callNo: "def12345",
+        description: "Description",
+      },
+    ];
+
+    const expectedOutcome: FormattedTimeEntry[] = [
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "abc",
+        hours: 8,
+        callNo: "abc12345",
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "abc",
+        hours: 8,
+        callNo: "abc23456",
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "def",
+        hours: 8,
+        callNo: "def12345",
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "net",
+        hours: 8,
+        callNo: mockUser.callNo,
+        description: "Description",
+      },
+      {
+        resource: mockUser.resource,
+        date: "22/11/2024",
+        code: "xyz",
+        hours: 8,
+        callNo: "xyz12345",
+        description: "Description",
+      },
+    ];
+
+    const sortedEntries = sortTimeEntriesByCallNo(timeEntries);
+
+    expect(sortedEntries).toEqual(expectedOutcome);
   });
 });
