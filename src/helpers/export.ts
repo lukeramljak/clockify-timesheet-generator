@@ -9,6 +9,15 @@ const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   });
 };
 
+export const generateFileName = (resource: string, date: Date): string => {
+  const formattedEndDate = new Date(date);
+  const year = String(formattedEndDate.getFullYear()).slice(-2);
+  const month = String(formattedEndDate.getMonth() + 1).padStart(2, "0");
+  const day = String(formattedEndDate.getDate()).padStart(2, "0");
+  const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
+  return fileName;
+};
+
 const exportToExcel = async (
   timeEntries: FormattedTimeEntry[],
   date: Date,
@@ -102,11 +111,7 @@ const exportToExcel = async (
       column.width = columnWidths[index];
     });
 
-    const formattedEndDate = new Date(date);
-    const year = String(formattedEndDate.getFullYear()).slice(-2);
-    const month = String(formattedEndDate.getMonth() + 1).padStart(2, "0");
-    const day = String(formattedEndDate.getDate()).padStart(2, "0");
-    const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
+    const fileName = generateFileName(resource, date);
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {

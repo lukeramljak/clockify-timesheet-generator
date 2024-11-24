@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import exportToExcel from "@/helpers/export";
+import exportToExcel, { generateFileName } from "@/helpers/export";
 
 const mockUser = {
   resource: "USR",
@@ -52,7 +52,7 @@ vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
   return document.createElement(tagName);
 });
 
-describe("exportToExcel", () => {
+describe("generateFileName", () => {
   const mockDate = new Date("2024-11-24");
 
   const mockTimeEntries = [
@@ -82,8 +82,15 @@ describe("exportToExcel", () => {
     },
   ];
 
-  it("should set the file name format correctly", async () => {
+  const expectedOutput = "USR Timesheet241124.xlsx";
+
+  it("should format the file name correctly", () => {
+    const fileName = generateFileName(mockUser.resource, mockDate);
+    expect(fileName).toBe(expectedOutput);
+  });
+
+  it("should set the file name of the downloaded file correctly", async () => {
     await exportToExcel(mockTimeEntries, mockDate);
-    expect(mockElement.download).toMatch(/USR Timesheet241124\.xlsx/);
+    expect(mockElement.download).toBe(expectedOutput);
   });
 });
