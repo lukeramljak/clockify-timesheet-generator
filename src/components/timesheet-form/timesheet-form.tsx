@@ -11,8 +11,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import exportToExcel from "@/helpers/export";
-import formatTimeEntries from "@/helpers/format-time-entries";
+import { exportToExcel } from "@/helpers/export";
+import { formatTimeEntries } from "@/helpers/time-entries";
 import { useUserStore } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Clockify from "clockify-ts";
@@ -23,27 +23,37 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
-  resource: z.string().regex(/^[A-Z]+$/, { message: "Must be all caps" }),
-  callNo: z.string().regex(/^net\d{5}$/, { message: "Invalid format" }),
-  date: z.date(),
+  resource: z
+    .string()
+    .min(3, { message: "Must be 3 characters" })
+    .max(3, { message: "Must be 3 characters" })
+    .regex(/^[A-Z]+$/, { message: "Must be all caps" }),
+  callNo: z
+    .string()
+    .min(8, { message: "Must be 8 characters" })
+    .max(8, { message: "Must be 8 characters" })
+    .regex(/^net\d{5}$/, { message: "Invalid format" }),
+  weekEnding: z.date(),
   includeProject: z.boolean(),
 });
 
-const TimesheetForm = () => {
+export const TimesheetForm = () => {
   const [isExporting, setIsExporting] = useState(false);
-  const {
-    userId,
-    workspaceId,
-    apiKey,
-    resource,
-    callNo,
-    prefersProjectName,
-    setResource,
-    setCallNo,
-    setProjects,
-    setPrefersProjectName,
-    reset,
-  } = useUserStore();
+
+  const userId = useUserStore((state) => state.userId);
+  const workspaceId = useUserStore((state) => state.workspaceId);
+  const apiKey = useUserStore((state) => state.apiKey);
+  const resource = useUserStore((state) => state.resource);
+  const callNo = useUserStore((state) => state.callNo);
+  const prefersProjectName = useUserStore((state) => state.prefersProjectName);
+  const setResource = useUserStore((state) => state.setResource);
+  const setCallNo = useUserStore((state) => state.setCallNo);
+  const setProjects = useUserStore((state) => state.setProjects);
+  const setPrefersProjectName = useUserStore(
+    (state) => state.setPrefersProjectName,
+  );
+  const reset = useUserStore((state) => state.reset);
+
   const clockify = new Clockify(apiKey);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,7 +61,7 @@ const TimesheetForm = () => {
     defaultValues: {
       resource: resource,
       callNo: callNo,
-      date: undefined,
+      weekEnding: undefined,
       includeProject: prefersProjectName || false,
     },
   });
@@ -67,7 +77,7 @@ const TimesheetForm = () => {
             .users.withId(userId)
             .timeEntries.get({
               "get-week-before": format(
-                new Date(data.date),
+                new Date(data.weekEnding),
                 "yyyy-MM-dd'T'23:59:59.999'Z'",
               ),
             }),
@@ -81,16 +91,28 @@ const TimesheetForm = () => {
 
         timeEntries.forEach((entry) => {
           if (!entry.timeInterval.duration) {
-            throw Error("Unable to generate timesheet with an active timer.");
+            throw new Error(
+              "Unable to generate timesheet with an active timer",
+            );
           }
         });
 
-        const formattedTimeEntries = formatTimeEntries(timeEntries);
+        const formattedTimeEntries = formatTimeEntries(
+          {
+            resource: data.resource,
+            callNo: data.callNo,
+            projects,
+            prefersProjectName: data.includeProject,
+          },
+          timeEntries,
+        );
 
-        await exportToExcel(formattedTimeEntries, data.date);
+        await exportToExcel(formattedTimeEntries, data.weekEnding);
       }
     } catch (error) {
-      toast.error(error as string);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
     } finally {
       setIsExporting(false);
     }
@@ -138,12 +160,12 @@ const TimesheetForm = () => {
           />
           <FormField
             control={form.control}
-            name="date"
+            name="weekEnding"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Week Ending</FormLabel>
                 <FormControl>
-                  <DatePicker field={field} />
+                  <DatePicker {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -175,5 +197,3 @@ const TimesheetForm = () => {
     </>
   );
 };
-
-export default TimesheetForm;

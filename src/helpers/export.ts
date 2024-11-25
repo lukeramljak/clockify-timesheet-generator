@@ -1,6 +1,9 @@
 import { useUserStore } from "@/store";
 import ExcelJS, { Worksheet } from "exceljs";
 
+export const EXCEL_MIME_TYPE =
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
 const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   worksheet.getColumn(value).eachCell({ includeEmpty: true }, (cell) => {
     if (!isNaN(cell.value as number)) {
@@ -9,7 +12,48 @@ const convertColumnToNumber = (worksheet: Worksheet, value: string) => {
   });
 };
 
-const exportToExcel = async (
+export const generateFileName = (resource: string, date: Date): string => {
+  const formattedEndDate = new Date(date);
+  const year = String(formattedEndDate.getFullYear()).slice(-2);
+  const month = String(formattedEndDate.getMonth() + 1).padStart(2, "0");
+  const day = String(formattedEndDate.getDate()).padStart(2, "0");
+  const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
+  return fileName;
+};
+
+export const downloadFile = (blob: Blob, fileName: string): void => {
+  if (blob.type !== EXCEL_MIME_TYPE) {
+    throw new Error("Invalid file type. Expected Excel file.");
+  }
+
+  if (blob.size === 0) {
+    throw new Error("Invalid Excel buffer");
+  }
+
+  if (!fileName.endsWith(".xlsx")) {
+    throw new Error("Invalid file extension. Must be .xlsx");
+  }
+
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+
+    try {
+      document.body.appendChild(a);
+      a.click();
+    } finally {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  } catch (error) {
+    console.error("Failed to download file:", error);
+    throw error;
+  }
+};
+
+export const exportToExcel = async (
   timeEntries: FormattedTimeEntry[],
   date: Date,
 ): Promise<void> => {
@@ -29,12 +73,6 @@ const exportToExcel = async (
       "Description",
     ];
     worksheet.addRow(headers);
-
-    timeEntries.sort((a, b) => {
-      if (a.callNo < b.callNo) return -1;
-      if (a.callNo > b.callNo) return 1;
-      return 0;
-    });
 
     const totals: {
       [callNoValue: string]: { startRow: number; endRow: number };
@@ -102,28 +140,13 @@ const exportToExcel = async (
       column.width = columnWidths[index];
     });
 
-    const formattedEndDate = new Date(date);
-    const year = String(formattedEndDate.getFullYear()).slice(-2);
-    const month = String(formattedEndDate.getMonth() + 1).padStart(2, "0");
-    const day = String(formattedEndDate.getDate()).padStart(2, "0");
-    const fileName = `${resource} Timesheet${year}${month}${day}.xlsx`;
+    const fileName = generateFileName(resource, date);
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+    const blob = new Blob([buffer], { type: EXCEL_MIME_TYPE });
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadFile(blob, fileName);
   } catch (error) {
     console.error("Failed to export to Excel:", error);
   }
 };
-
-export default exportToExcel;

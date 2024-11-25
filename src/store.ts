@@ -2,7 +2,7 @@ import { ProjectType } from "clockify-ts";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type UserStore = {
+export interface User {
   name: string;
   userId: string;
   resource: string;
@@ -11,6 +11,9 @@ type UserStore = {
   apiKey: string;
   projects: ProjectType[];
   prefersProjectName: boolean;
+}
+
+interface UserActions {
   setName: (newName: string) => void;
   setUserId: (newUserId: string) => void;
   setResource: (newResource: string) => void;
@@ -20,7 +23,7 @@ type UserStore = {
   setProjects: (newProjects: ProjectType[]) => void;
   setPrefersProjectName: (newPreference: boolean) => void;
   reset: () => void;
-};
+}
 
 const initialState = {
   name: "",
@@ -33,7 +36,7 @@ const initialState = {
   prefersProjectName: false,
 };
 
-export const useUserStore = create<UserStore>()(
+export const useUserStore = create<User & UserActions>()(
   persist(
     (set) => ({
       ...initialState,
@@ -50,6 +53,6 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: "user",
-    }
-  )
+    },
+  ),
 );

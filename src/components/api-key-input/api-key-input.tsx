@@ -22,9 +22,14 @@ const formSchema = z.object({
   }),
 });
 
-const ApiKeyInput = () => {
+export const ApiKeyInput = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { setName, setUserId, setWorkspaceId, setApiKey } = useUserStore();
+
+  const setName = useUserStore((state) => state.setName);
+  const setUserId = useUserStore((state) => state.setUserId);
+  const setWorkspaceId = useUserStore((state) => state.setWorkspaceId);
+  const setApiKey = useUserStore((state) => state.setApiKey);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -43,13 +48,21 @@ const ApiKeyInput = () => {
       setUserId(user.id);
       setWorkspaceId(user.defaultWorkspace);
       setApiKey(data.apiKey);
-
-      setIsLoading(false);
     } catch (error) {
-      form.setError("apiKey", {
-        type: "manual",
-        message: "Invalid API key",
-      });
+      if (error instanceof Error) {
+        if (error.message.match(/api key/i)) {
+          form.setError("apiKey", {
+            type: "manual",
+            message: "Invalid API key",
+          });
+        } else {
+          form.setError("apiKey", {
+            type: "manual",
+            message: "An unknown error occurred",
+          });
+        }
+      }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -94,5 +107,3 @@ const ApiKeyInput = () => {
     </Form>
   );
 };
-
-export default ApiKeyInput;
