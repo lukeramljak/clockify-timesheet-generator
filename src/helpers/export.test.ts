@@ -44,10 +44,12 @@ vi.mock("@/store", () => ({
 }));
 
 global.URL.createObjectURL = vi.fn(() => "mock-url");
+vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
 
 const mockElement = {
   href: "",
   download: "",
+  click: vi.fn(),
 } as unknown as HTMLAnchorElement;
 
 vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
@@ -56,6 +58,8 @@ vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
   }
   return document.createElement(tagName);
 });
+vi.spyOn(document.body, "appendChild").mockImplementation(() => mockElement);
+vi.spyOn(document.body, "removeChild").mockImplementation(() => mockElement);
 
 describe("generateFileName", () => {
   const mockDate = new Date("2024-11-24");
