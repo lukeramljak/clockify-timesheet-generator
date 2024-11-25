@@ -44,7 +44,7 @@ vi.mock("@/store", () => ({
 }));
 
 global.URL.createObjectURL = vi.fn(() => "mock-url");
-vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+global.URL.revokeObjectURL = vi.fn(() => {});
 
 const mockElement = {
   href: "",
