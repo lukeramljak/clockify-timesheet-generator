@@ -1,8 +1,8 @@
 import { useUserStore } from "@/store";
 import { ApiKeyInput } from "@/components/api-key-input/api-key-input";
-import TimesheetForm from "./timesheet-form";
+import { TimesheetForm } from "@/components/timesheet-form/timesheet-form";
 
-const Content = () => {
+export const Content = () => {
   const apiKey = useUserStore((state) => state.apiKey);
 
   return (
@@ -11,5 +11,3 @@ const Content = () => {
     </div>
   );
 };
-
-export default Content;

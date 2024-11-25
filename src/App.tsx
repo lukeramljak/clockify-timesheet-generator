@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
-import Content from "./components/content";
-import { ThemeProvider } from "./components/theme/theme-provider";
+import { Content } from "@/components/content";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 
 export default function App() {
   return (
