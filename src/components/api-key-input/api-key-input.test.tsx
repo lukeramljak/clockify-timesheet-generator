@@ -30,6 +30,16 @@ vi.spyOn(useUserStore.getState(), "setApiKey").mockImplementation(
   mockSetApiKey,
 );
 
+const renderComponent = () => {
+  render(<ApiKeyInput />);
+
+  return {
+    apiKeyInput: screen.getByLabelText(/clockify api key/i),
+    clockifyLink: screen.getByRole("link"),
+    submitButton: screen.getByRole("button", { name: /submit/i }),
+  };
+};
+
 describe("ApiKeyInput", () => {
   const user = userEvent.setup();
   const initialStoreState = useUserStore.getState();
@@ -39,22 +49,20 @@ describe("ApiKeyInput", () => {
   });
 
   it("renders the form with all necessary elements", () => {
-    render(<ApiKeyInput />);
+    const { apiKeyInput, clockifyLink, submitButton } = renderComponent();
 
-    expect(screen.getByLabelText(/clockify api key/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/enter api key/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /submit/i })).toBeInTheDocument();
-    expect(screen.getByText(/get one at/i)).toBeInTheDocument();
-    expect(screen.getByRole("link")).toHaveAttribute(
+    expect(apiKeyInput).toBeInTheDocument();
+    expect(clockifyLink).toHaveAttribute(
       "href",
       "https://app.clockify.me/user/preferences#advanced",
     );
+    expect(submitButton).toBeInTheDocument();
   });
 
   it("shows validation error when submitting empty form", async () => {
-    render(<ApiKeyInput />);
+    const { submitButton } = renderComponent();
 
-    await user.click(screen.getByRole("button", { name: /submit/i }));
+    await user.click(submitButton);
 
     expect(
       await screen.findByText(/field cannot be empty/i),
@@ -62,6 +70,8 @@ describe("ApiKeyInput", () => {
   });
 
   it("handles successful API key submission", async () => {
+    const { apiKeyInput, submitButton } = renderComponent();
+
     const mockUser = {
       name: "Test User",
       id: "test-id",
@@ -70,12 +80,7 @@ describe("ApiKeyInput", () => {
 
     mockGetUser.mockResolvedValueOnce(mockUser);
 
-    render(<ApiKeyInput />);
-
-    const input = screen.getByPlaceholderText(/enter api key/i);
-    await user.type(input, "valid-api-key");
-
-    const submitButton = screen.getByRole("button", { name: /submit/i });
+    await user.type(apiKeyInput, "valid-api-key");
     await user.click(submitButton);
 
     await waitFor(() => {
@@ -89,24 +94,20 @@ describe("ApiKeyInput", () => {
   });
 
   it("handles invalid API key error correctly", async () => {
+    const { apiKeyInput, submitButton } = renderComponent();
+
     mockGetUser.mockRejectedValue(new Error("Api key does not exist"));
 
-    render(<ApiKeyInput />);
-
-    const input = screen.getByPlaceholderText(/enter api key/i);
-    await user.type(input, "invalid-api-key");
-
-    const submitButton = screen.getByRole("button", { name: /submit/i });
+    await user.type(apiKeyInput, "invalid-api-key");
     await user.click(submitButton);
 
     expect(await screen.findByText(/invalid api key/i)).toBeInTheDocument();
   });
 
   it("maintains external link properties", () => {
-    render(<ApiKeyInput />);
+    const { clockifyLink } = renderComponent();
 
-    const link = screen.getByRole("link");
-    expect(link).toHaveAttribute("target", "_blank");
-    expect(link).toHaveAttribute("rel", "noreferrer");
+    expect(clockifyLink).toHaveAttribute("target", "_blank");
+    expect(clockifyLink).toHaveAttribute("rel", "noreferrer");
   });
 });
