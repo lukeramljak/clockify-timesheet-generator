@@ -1,17 +1,25 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { TimesheetForm } from "@/components/timesheet-form/timesheet-form";
-import { useUserStore } from "@/store";
-import { toast } from "sonner";
 import { exportToExcel } from "@/helpers/export";
+import { useUserStore } from "@/store";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent, { UserEvent } from "@testing-library/user-event";
 import { ProjectType, TimeEntryType } from "clockify-ts";
+import { isFriday } from "date-fns";
+import { toast } from "sonner";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+const mockSetUser = vi.fn();
+const mockResetUser = vi.fn();
 
 vi.mock("@/helpers/export");
 vi.mock("@/helpers/time-entries");
 vi.mock("sonner", () => ({
-  toast: { error: vi.fn(), success: vi.fn() },
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
 }));
+vi.mock("@/store");
 
 const mockGetTimeEntries = vi.fn();
 const mockGetProjects = vi.fn();
@@ -35,70 +43,77 @@ vi.mock("clockify-ts", () => ({
   })),
 }));
 
-const mockSetResource = vi.fn();
-const mockSetCallNo = vi.fn();
-const mockSetProjects = vi.fn();
-const mockSetPrefersProjectName = vi.fn();
-const mockReset = vi.fn();
-
-vi.spyOn(useUserStore.getState(), "setResource").mockImplementation(
-  mockSetResource,
-);
-vi.spyOn(useUserStore.getState(), "setCallNo").mockImplementation(
-  mockSetCallNo,
-);
-vi.spyOn(useUserStore.getState(), "setProjects").mockImplementation(
-  mockSetProjects,
-);
-vi.spyOn(useUserStore.getState(), "setPrefersProjectName").mockImplementation(
-  mockSetPrefersProjectName,
-);
-vi.spyOn(useUserStore.getState(), "reset").mockImplementation(mockReset);
-
 const renderComponent = () => {
   render(<TimesheetForm />);
 
   return {
     resourceInput: screen.getByLabelText(/resource/i),
     callNoInput: screen.getByLabelText(/call no/i),
-    weekEndingPicker: screen.getByLabelText(/week ending/i),
     includeProjectNameCheckbox: screen.getByLabelText(/include project name/i),
     exportButton: screen.getByRole("button", { name: /export/i }),
     clearApiKeyButton: screen.getByRole("button", { name: /clear api key/i }),
   };
 };
 
-const getDateCell = () => {
-  const dateCells = screen.queryAllByRole("gridcell");
-  const enabledDateCell = dateCells.find(
-    (cell) => !cell.hasAttribute("disabled"),
-  );
-  if (enabledDateCell) {
-    return enabledDateCell;
-  } else {
-    throw new Error("No enabled gridcell found");
+const openCalendarAndSelectFriday = async (user: UserEvent) => {
+  const pickerButton = screen.getByText(/pick a date/i);
+  await user.click(pickerButton);
+
+  await waitFor(() => {
+    expect(screen.getByRole("grid")).toBeInTheDocument();
+  });
+
+  const dateCells = screen.getAllByRole("gridcell");
+
+  for (const cell of dateCells) {
+    const text = cell.textContent?.trim();
+    const disabled = cell.getAttribute("aria-disabled") === "true";
+
+    if (!text || disabled) continue;
+
+    const day = parseInt(text);
+    if (isNaN(day)) continue;
+
+    const today = new Date();
+    const testDate = new Date(today.getFullYear(), today.getMonth(), day);
+
+    if (isFriday(testDate)) {
+      await user.click(cell);
+      return;
+    }
   }
+
+  throw new Error("No valid Friday cell found.");
 };
 
 describe("TimesheetForm", () => {
   const user = userEvent.setup();
 
   beforeEach(() => {
-    useUserStore.setState({
-      userId: "test-user",
-      workspaceId: "test-workspace",
-      apiKey: "test-api-key",
-      resource: "",
-      callNo: "",
-      prefersProjectName: false,
-    });
+    vi.clearAllMocks();
+
+    vi.mocked(useUserStore).mockImplementation((selector) =>
+      selector({
+        user: {
+          name: "",
+          userId: "test-user",
+          resource: "",
+          callNo: "",
+          workspaceId: "test-workspace",
+          apiKey: "test-api-key",
+          projects: [],
+          prefersProjectName: false,
+        },
+        setUser: mockSetUser,
+        resetUser: mockResetUser,
+      }),
+    );
   });
 
   it("renders all necessary form elements", () => {
     const {
       resourceInput,
       callNoInput,
-      weekEndingPicker,
       includeProjectNameCheckbox,
       exportButton,
       clearApiKeyButton,
@@ -106,7 +121,7 @@ describe("TimesheetForm", () => {
 
     expect(resourceInput).toBeInTheDocument();
     expect(callNoInput).toBeInTheDocument();
-    expect(weekEndingPicker).toBeInTheDocument();
+    expect(screen.getByText(/pick a date/i)).toBeInTheDocument();
     expect(includeProjectNameCheckbox).toBeInTheDocument();
     expect(exportButton).toBeInTheDocument();
     expect(clearApiKeyButton).toBeInTheDocument();
@@ -114,7 +129,6 @@ describe("TimesheetForm", () => {
 
   it("shows validation errors for empty input", async () => {
     const { exportButton } = renderComponent();
-
     await user.click(exportButton);
 
     await waitFor(() => {
@@ -127,7 +141,6 @@ describe("TimesheetForm", () => {
 
     await user.clear(callNoInput);
     await user.type(callNoInput, "abc12345");
-
     await user.click(exportButton);
 
     await waitFor(() => {
@@ -136,14 +149,10 @@ describe("TimesheetForm", () => {
   });
 
   it("handles successful submission", async () => {
-    const { resourceInput, callNoInput, weekEndingPicker, exportButton } =
-      renderComponent();
+    const { resourceInput, callNoInput, exportButton } = renderComponent();
 
     const mockProjects: ProjectType[] = [
-      {
-        id: "proj1",
-        name: "Project 1",
-      },
+      { id: "proj1", name: "Project 1" },
     ] as ProjectType[];
     const mockTimeEntries: TimeEntryType[] = [
       {
@@ -162,32 +171,30 @@ describe("TimesheetForm", () => {
 
     await user.type(resourceInput, "ABC");
     await user.type(callNoInput, "net45678");
-    await user.click(weekEndingPicker);
-
-    const dateCell = getDateCell();
-    await user.click(dateCell);
-
+    await openCalendarAndSelectFriday(user);
     await user.click(exportButton);
 
     await waitFor(() => {
-      expect(mockSetProjects).toHaveBeenCalledWith(mockProjects);
+      expect(mockSetUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          resource: "ABC",
+          callNo: "net45678",
+          projects: mockProjects,
+          prefersProjectName: false,
+        }),
+      );
       expect(exportToExcel).toHaveBeenCalled();
     });
   });
 
   it("displays an error for invalid input during submission", async () => {
-    const { resourceInput, callNoInput, weekEndingPicker, exportButton } =
-      renderComponent();
+    const { resourceInput, callNoInput, exportButton } = renderComponent();
 
     mockGetTimeEntries.mockRejectedValue(new Error("Invalid API Key"));
 
     await user.type(resourceInput, "XYZ");
     await user.type(callNoInput, "net56789");
-    await user.click(weekEndingPicker);
-
-    const dateCell = getDateCell();
-    await user.click(dateCell);
-
+    await openCalendarAndSelectFriday(user);
     await user.click(exportButton);
 
     await waitFor(() => {
@@ -196,8 +203,7 @@ describe("TimesheetForm", () => {
   });
 
   it("displays an error if the timer is still running", async () => {
-    const { resourceInput, callNoInput, weekEndingPicker, exportButton } =
-      renderComponent();
+    const { resourceInput, callNoInput, exportButton } = renderComponent();
 
     const mockTimeEntries: TimeEntryType[] = [
       {
@@ -215,11 +221,7 @@ describe("TimesheetForm", () => {
 
     await user.type(resourceInput, "ABC");
     await user.type(callNoInput, "net45678");
-    await user.click(weekEndingPicker);
-
-    const dateCell = getDateCell();
-    await user.click(dateCell);
-
+    await openCalendarAndSelectFriday(user);
     await user.click(exportButton);
 
     await waitFor(() => {
@@ -235,7 +237,7 @@ describe("TimesheetForm", () => {
     await user.click(clearApiKeyButton);
 
     await waitFor(() => {
-      expect(mockReset).toHaveBeenCalled();
+      expect(mockResetUser).toHaveBeenCalled();
     });
   });
 });

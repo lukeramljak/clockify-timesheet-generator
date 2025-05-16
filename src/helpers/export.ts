@@ -57,7 +57,7 @@ export const exportToExcel = async (
   timeEntries: FormattedTimeEntry[],
   date: Date,
 ): Promise<void> => {
-  const resource = useUserStore.getState().resource;
+  const resource = useUserStore.getState().user.resource;
 
   try {
     const workbook = new ExcelJS.Workbook();

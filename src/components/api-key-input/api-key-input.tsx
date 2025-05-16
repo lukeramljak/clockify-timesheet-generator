@@ -25,10 +25,7 @@ const formSchema = z.object({
 export const ApiKeyInput = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const setName = useUserStore((state) => state.setName);
-  const setUserId = useUserStore((state) => state.setUserId);
-  const setWorkspaceId = useUserStore((state) => state.setWorkspaceId);
-  const setApiKey = useUserStore((state) => state.setApiKey);
+  const setUser = useUserStore((state) => state.setUser);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,10 +41,12 @@ export const ApiKeyInput = () => {
       const clockify = new Clockify(data.apiKey);
       const user = await clockify.user.get();
 
-      setName(user.name);
-      setUserId(user.id);
-      setWorkspaceId(user.defaultWorkspace);
-      setApiKey(data.apiKey);
+      setUser({
+        name: user.name,
+        userId: user.id,
+        workspaceId: user.defaultWorkspace,
+        apiKey: data.apiKey,
+      });
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.match(/api key/i)) {

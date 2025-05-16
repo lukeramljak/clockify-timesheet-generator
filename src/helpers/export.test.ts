@@ -38,7 +38,9 @@ vi.mock("exceljs", () => {
 vi.mock("@/store", () => ({
   useUserStore: {
     getState: vi.fn(() => ({
-      resource: mockUser.resource,
+      user: {
+        resource: mockUser.resource,
+      },
     })),
   },
 }));

@@ -6,6 +6,7 @@ import { useUserStore } from "@/store";
 
 const mockGetUser = vi.fn();
 
+vi.mock("@/store");
 vi.mock("clockify-ts", () => ({
   default: vi.fn().mockImplementation(() => ({
     user: {
@@ -14,21 +15,7 @@ vi.mock("clockify-ts", () => ({
   })),
 }));
 
-const mockSetName = vi.fn();
-const mockSetUserId = vi.fn();
-const mockSetWorkspaceId = vi.fn();
-const mockSetApiKey = vi.fn();
-
-vi.spyOn(useUserStore.getState(), "setName").mockImplementation(mockSetName);
-vi.spyOn(useUserStore.getState(), "setUserId").mockImplementation(
-  mockSetUserId,
-);
-vi.spyOn(useUserStore.getState(), "setWorkspaceId").mockImplementation(
-  mockSetWorkspaceId,
-);
-vi.spyOn(useUserStore.getState(), "setApiKey").mockImplementation(
-  mockSetApiKey,
-);
+const mockSetUser = vi.fn();
 
 const renderComponent = () => {
   render(<ApiKeyInput />);
@@ -42,10 +29,24 @@ const renderComponent = () => {
 
 describe("ApiKeyInput", () => {
   const user = userEvent.setup();
-  const initialStoreState = useUserStore.getState();
 
   beforeEach(() => {
-    useUserStore.setState(initialStoreState, true);
+    vi.mocked(useUserStore).mockImplementation((selector) =>
+      selector({
+        user: {
+          name: "",
+          userId: "test-user",
+          resource: "",
+          callNo: "",
+          workspaceId: "test-workspace",
+          apiKey: "test-api-key",
+          projects: [],
+          prefersProjectName: false,
+        },
+        setUser: mockSetUser,
+        resetUser: vi.fn(),
+      }),
+    );
   });
 
   it("renders the form with all necessary elements", () => {
@@ -84,12 +85,12 @@ describe("ApiKeyInput", () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockSetName).toHaveBeenCalledWith(mockUser.name);
-      expect(mockSetUserId).toHaveBeenCalledWith(mockUser.id);
-      expect(mockSetWorkspaceId).toHaveBeenCalledWith(
-        mockUser.defaultWorkspace,
-      );
-      expect(mockSetApiKey).toHaveBeenCalledWith("valid-api-key");
+      expect(mockSetUser).toHaveBeenCalledWith({
+        name: mockUser.name,
+        userId: mockUser.id,
+        workspaceId: mockUser.defaultWorkspace,
+        apiKey: "valid-api-key",
+      });
     });
   });
 

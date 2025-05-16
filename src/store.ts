@@ -13,19 +13,13 @@ export interface User {
   prefersProjectName: boolean;
 }
 
-interface UserActions {
-  setName: (newName: string) => void;
-  setUserId: (newUserId: string) => void;
-  setResource: (newResource: string) => void;
-  setCallNo: (newCallNo: string) => void;
-  setWorkspaceId: (newWorkspaceId: string) => void;
-  setApiKey: (newApiKey: string) => void;
-  setProjects: (newProjects: ProjectType[]) => void;
-  setPrefersProjectName: (newPreference: boolean) => void;
-  reset: () => void;
+interface UserState {
+  user: User;
+  setUser: (newUser: Partial<User>) => void;
+  resetUser: () => void;
 }
 
-const initialState = {
+const initialUser: User = {
   name: "",
   userId: "",
   resource: "",
@@ -36,23 +30,16 @@ const initialState = {
   prefersProjectName: false,
 };
 
-export const useUserStore = create<User & UserActions>()(
+export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
-      ...initialState,
-      setName: (newName) => set({ name: newName }),
-      setUserId: (newUserId) => set({ userId: newUserId }),
-      setResource: (newResource) => set({ resource: newResource }),
-      setCallNo: (newCallNo) => set({ callNo: newCallNo }),
-      setWorkspaceId: (newWorkspaceId) => set({ workspaceId: newWorkspaceId }),
-      setApiKey: (newApiKey) => set({ apiKey: newApiKey }),
-      setProjects: (newProjects) => set({ projects: newProjects }),
-      setPrefersProjectName: (newPreference) =>
-        set({ prefersProjectName: newPreference }),
-      reset: () => set(initialState),
+      user: initialUser,
+      setUser: (newUser) =>
+        set((state) => ({
+          user: { ...state.user, ...newUser },
+        })),
+      resetUser: () => set({ user: initialUser }),
     }),
-    {
-      name: "user",
-    },
+    { name: "user" },
   ),
 );

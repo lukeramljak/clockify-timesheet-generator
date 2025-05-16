@@ -47,29 +47,19 @@ const formSchema = z.object({
 export const TimesheetForm = () => {
   const [isExporting, setIsExporting] = useState(false);
 
-  const userId = useUserStore((state) => state.userId);
-  const workspaceId = useUserStore((state) => state.workspaceId);
-  const apiKey = useUserStore((state) => state.apiKey);
-  const resource = useUserStore((state) => state.resource);
-  const callNo = useUserStore((state) => state.callNo);
-  const prefersProjectName = useUserStore((state) => state.prefersProjectName);
-  const setResource = useUserStore((state) => state.setResource);
-  const setCallNo = useUserStore((state) => state.setCallNo);
-  const setProjects = useUserStore((state) => state.setProjects);
-  const setPrefersProjectName = useUserStore(
-    (state) => state.setPrefersProjectName,
-  );
-  const reset = useUserStore((state) => state.reset);
+  const user = useUserStore((state) => state.user);
+  const setUser = useUserStore((state) => state.setUser);
+  const resetUser = useUserStore((state) => state.resetUser);
 
-  const clockify = new Clockify(apiKey);
+  const clockify = new Clockify(user.apiKey);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      resource: resource,
-      callNo: callNo,
+      resource: user.resource,
+      callNo: user.callNo,
       weekEnding: undefined,
-      includeProject: prefersProjectName || false,
+      includeProject: user.prefersProjectName || false,
     },
   });
 
@@ -77,24 +67,26 @@ export const TimesheetForm = () => {
     setIsExporting(true);
 
     try {
-      if (userId && workspaceId) {
+      if (user.userId && user.workspaceId) {
         const [timeEntries, projects] = await Promise.all([
           clockify.workspace
-            .withId(workspaceId)
-            .users.withId(userId)
+            .withId(user.workspaceId)
+            .users.withId(user.userId)
             .timeEntries.get({
               "get-week-before": format(
                 new Date(data.weekEnding),
                 "yyyy-MM-dd'T'23:59:59.999'Z'",
               ),
             }),
-          clockify.workspace.withId(workspaceId).projects.get(),
+          clockify.workspace.withId(user.workspaceId).projects.get(),
         ]);
 
-        setResource(data.resource);
-        setCallNo(data.callNo);
-        setProjects(projects);
-        setPrefersProjectName(data.includeProject);
+        setUser({
+          resource: data.resource,
+          callNo: data.callNo,
+          projects,
+          prefersProjectName: data.includeProject,
+        });
 
         timeEntries.forEach((entry) => {
           if (!entry.timeInterval.duration) {
@@ -130,7 +122,7 @@ export const TimesheetForm = () => {
       <Button
         variant={"link"}
         className="absolute top-4 right-4"
-        onClick={reset}
+        onClick={resetUser}
       >
         Clear API Key
       </Button>
