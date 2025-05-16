@@ -1,6 +1,6 @@
-import { DatePicker } from "@/components/date-picker";
 import HelpDialog from "@/components/help-dialog";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -11,12 +11,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { exportToExcel } from "@/helpers/export";
 import { formatTimeEntries } from "@/helpers/time-entries";
+import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Clockify from "clockify-ts";
-import { format } from "date-fns";
+import { format, isFriday } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -123,7 +130,7 @@ export const TimesheetForm = () => {
       <Button
         variant={"link"}
         className="absolute top-4 right-4"
-        onClick={() => reset()}
+        onClick={reset}
       >
         Clear API Key
       </Button>
@@ -164,9 +171,35 @@ export const TimesheetForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Week Ending</FormLabel>
-                <FormControl>
-                  <DatePicker {...field} />
-                </FormControl>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal hover:text-muted-foreground",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "dd/MM/yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => !isFriday(date)}
+                      autoFocus={true}
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
