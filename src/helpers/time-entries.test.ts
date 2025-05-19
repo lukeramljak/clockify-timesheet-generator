@@ -6,7 +6,7 @@ import {
   getDescription,
   getHours,
   getProjectName,
-  sortTimeEntriesByCallNo,
+  sortTimeEntries,
 } from "@/helpers/time-entries";
 import { User } from "@/store";
 import { ProjectType, TimeEntryType } from "clockify-ts";
@@ -403,7 +403,7 @@ describe("sortEntriesByCallNo", () => {
       },
     ];
 
-    const sortedEntries = sortTimeEntriesByCallNo(timeEntries);
+    const sortedEntries = sortTimeEntries(timeEntries);
 
     expect(sortedEntries).toEqual(expectedOutcome);
   });

@@ -43,14 +43,27 @@ export const getProjectName = (
   return project ? project.name : "";
 };
 
-export const sortTimeEntriesByCallNo = (
+export const sortTimeEntries = (
   timeEntries: FormattedTimeEntry[],
 ): FormattedTimeEntry[] => {
   return timeEntries.sort((a, b) => {
     if (a.callNo < b.callNo) return -1;
     if (a.callNo > b.callNo) return 1;
+
+    // Convert date strings to Date objects for proper comparison
+    const dateA = convertToDate(a.date);
+    const dateB = convertToDate(b.date);
+
+    if (dateA < dateB) return -1;
+    if (dateA > dateB) return 1;
     return 0;
   });
+};
+
+export const convertToDate = (dateStr: string): Date => {
+  // Parse date in format DD/MM/YYYY
+  const [day, month, year] = dateStr.split("/").map(Number);
+  return new Date(year, month - 1, day);
 };
 
 export const formatTimeEntries = (
@@ -58,20 +71,16 @@ export const formatTimeEntries = (
   timeEntries: TimeEntryType[],
 ): FormattedTimeEntry[] => {
   const mergedEntries: { [key: string]: FormattedTimeEntry } = {};
-
   timeEntries.forEach(({ billable, description, projectId, timeInterval }) => {
     const date = getDate(timeInterval);
     const code = billable ? getCode(description) : "net";
     const hours = getHours(timeInterval.duration);
     const newCallNo = billable ? getCallNo(description) : user.callNo;
     let newDescription = billable ? getDescription(description) : description;
-
     if (user.prefersProjectName) {
       newDescription = `${getProjectName(user.projects, projectId)} - ${newDescription}`;
     }
-
     const key = `${date}_${code}_${newDescription}_${newCallNo}`;
-
     if (mergedEntries[key]) {
       mergedEntries[key].hours += hours;
     } else {
@@ -85,8 +94,6 @@ export const formatTimeEntries = (
       };
     }
   });
-
-  const sortedEntries = sortTimeEntriesByCallNo(Object.values(mergedEntries));
-
+  const sortedEntries = sortTimeEntries(Object.values(mergedEntries));
   return sortedEntries;
 };
