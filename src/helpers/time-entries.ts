@@ -9,13 +9,13 @@ export const getDate = (
 };
 
 export const getHours = (duration: string): number => {
-  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/); // Example 30mins 50 seconds - PT30M50S
   if (match) {
     const hours = match[1] ? parseInt(match[1], 10) : 0;
     const minutes = match[2] ? parseInt(match[2], 10) : 0;
     const seconds = match[3] ? parseInt(match[3], 10) : 0;
     const totalHours = hours + minutes / 60 + seconds / 3600;
-    return totalHours;
+    return Math.round(totalHours * 100) / 100;
   }
   return 0;
 };
@@ -60,10 +60,11 @@ export const sortTimeEntries = (
   });
 };
 
+// Helper function to convert DD/MM/YYYY format to Date object
 export const convertToDate = (dateStr: string): Date => {
   // Parse date in format DD/MM/YYYY
   const [day, month, year] = dateStr.split("/").map(Number);
-  return new Date(year, month - 1, day);
+  return new Date(year, month - 1, day); // Month is 0-indexed in JS Date
 };
 
 export const formatTimeEntries = (
@@ -82,7 +83,9 @@ export const formatTimeEntries = (
     }
     const key = `${date}_${code}_${newDescription}_${newCallNo}`;
     if (mergedEntries[key]) {
-      mergedEntries[key].hours += hours;
+      // Round the sum to 2 decimal places after adding
+      mergedEntries[key].hours =
+        Math.round((mergedEntries[key].hours + hours) * 100) / 100;
     } else {
       mergedEntries[key] = {
         resource: user.resource,
