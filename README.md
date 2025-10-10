@@ -1,5 +1,7 @@
 # Clockify Timesheet Generator
 
+![Tests](https://github.com/lukeramljak/clockify-timesheet-generator/actions/workflows/test.yml/badge.svg)
+
 ## Overview
 
 Automating my weekly timesheets by fetching data from Clockify and generating Excel files, built with SvelteKit and TypeScript.
