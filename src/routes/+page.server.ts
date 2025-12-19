@@ -30,7 +30,8 @@ export const actions = {
         path: '/',
         httpOnly: true,
         secure: true,
-        sameSite: 'strict'
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 14
       });
     } catch {
       return setError(form, 'apiKey', 'Invalid API key. Please check and try again.');
