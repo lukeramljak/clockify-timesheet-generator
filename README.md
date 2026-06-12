@@ -17,19 +17,19 @@ git clone https://github.com/lukeramljak/clockify-timesheet-generator.git
 2. Install dependencies:
 
 ```sh
-bun install
+pnpm install
 ```
 
 3. Start the dev server:
 
 ```sh
-bun run dev
+pnpm dev
 ```
 
 4. Build for production:
 
 ```sh
-bun run build
+pnpm build
 ```
 
 ## Contributing
